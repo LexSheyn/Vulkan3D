@@ -177,6 +177,8 @@ SwapChainSupportDetails Application::QuerySwapChainSupport(VkPhysicalDevice devi
 
 	if ( presentModeCount != 0u )
 	{
+		details.PresentModes.resize( presentModeCount );
+
 		vkGetPhysicalDeviceSurfacePresentModesKHR( device, Surface, &presentModeCount, details.PresentModes.data() );
 	}
 
@@ -194,7 +196,7 @@ bool Application::IsDeviceSuitable( VkPhysicalDevice device)
 	if ( extensionsSupported )
 	{
 		SwapChainSupportDetails swapChainSupport = this->QuerySwapChainSupport( device );
-
+				
 		swapChainAdequate = !swapChainSupport.Formats.empty() && !swapChainSupport.PresentModes.empty();
 	}
 

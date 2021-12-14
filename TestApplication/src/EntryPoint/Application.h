@@ -33,7 +33,7 @@ struct QueueFamilyIndices
 
 struct SwapChainSupportDetails
 {
-	VkSurfaceCapabilitiesKHR Capabilities;
+	VkSurfaceCapabilitiesKHR Capabilities{};
 
 	std::vector<VkSurfaceFormatKHR> Formats;
 
