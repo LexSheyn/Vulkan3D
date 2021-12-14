@@ -128,11 +128,12 @@ void Application::CreateLogicalDevice()
 
 	VkDeviceCreateInfo deviceCreateInfo{};
 
-	deviceCreateInfo.sType                 = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	deviceCreateInfo.queueCreateInfoCount  = static_cast<uint32_t>( queueCreateInfos.size() );
-	deviceCreateInfo.pQueueCreateInfos     = queueCreateInfos.data();
-	deviceCreateInfo.pEnabledFeatures      = &physicalDeviceFeatures;
-	deviceCreateInfo.enabledExtensionCount = 0u;
+	deviceCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	deviceCreateInfo.queueCreateInfoCount    = static_cast<uint32_t>( queueCreateInfos.size() );
+	deviceCreateInfo.pQueueCreateInfos       = queueCreateInfos.data();
+	deviceCreateInfo.pEnabledFeatures        = &physicalDeviceFeatures;
+	deviceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>( DeviceExtensions.size() );
+	deviceCreateInfo.ppEnabledExtensionNames = DeviceExtensions.data();
 
 	if ( EnableValidationLayers )
 	{
@@ -153,17 +154,71 @@ void Application::CreateLogicalDevice()
 	vkGetDeviceQueue( Device, indices.PresentFamily.value() , 0u, &PresentQueue  );
 }
 
+SwapChainSupportDetails Application::QuerySwapChainSupport(VkPhysicalDevice device)
+{
+	SwapChainSupportDetails details;
+
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR( device, Surface, &details.Capabilities );
+
+	uint32_t formatCount;
+
+	vkGetPhysicalDeviceSurfaceFormatsKHR( device, Surface, &formatCount, nullptr );
+
+	if ( formatCount != 0u )
+	{
+		details.Formats.resize( formatCount );
+
+		vkGetPhysicalDeviceSurfaceFormatsKHR( device, Surface, &formatCount, details.Formats.data() );
+	}
+
+	uint32_t presentModeCount;
+
+	vkGetPhysicalDeviceSurfacePresentModesKHR( device, Surface, &presentModeCount, nullptr );
+
+	if ( presentModeCount != 0u )
+	{
+		vkGetPhysicalDeviceSurfacePresentModesKHR( device, Surface, &presentModeCount, details.PresentModes.data() );
+	}
+
+	return details;
+}
+
 bool Application::IsDeviceSuitable( VkPhysicalDevice device)
 {
-	VkPhysicalDeviceProperties deviceProperties;
+	QueueFamilyIndices indices = this->FindQueueFamilies( device );
 
-	VkPhysicalDeviceFeatures   deviceFeatures;
+	bool extensionsSupported = this->CheckDeviceExtensionSupport( device );
 
-	vkGetPhysicalDeviceProperties( device, &deviceProperties );	
+	bool swapChainAdequate = false;
 
-	vkGetPhysicalDeviceFeatures( device, &deviceFeatures );
+	if ( extensionsSupported )
+	{
+		SwapChainSupportDetails swapChainSupport = this->QuerySwapChainSupport( device );
 
-	return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader;
+		swapChainAdequate = !swapChainSupport.Formats.empty() && !swapChainSupport.PresentModes.empty();
+	}
+
+	return indices.IsComplete() && extensionsSupported && swapChainAdequate;
+}
+
+bool Application::CheckDeviceExtensionSupport(VkPhysicalDevice device)
+{
+	uint32_t extensionCount;
+
+	vkEnumerateDeviceExtensionProperties( device, nullptr, &extensionCount, nullptr );
+
+	std::vector<VkExtensionProperties> availableExtensions( extensionCount );
+
+	vkEnumerateDeviceExtensionProperties( device, nullptr, &extensionCount, availableExtensions.data() );
+
+	std::set<std::string> requiredExtensions( DeviceExtensions.begin(), DeviceExtensions.end() );
+
+	for ( const auto& extension : availableExtensions )
+	{
+		requiredExtensions.erase( extension.extensionName );
+	}
+
+	return requiredExtensions.empty();
 }
 
 int32_t Application::RateDeviceSuitability( VkPhysicalDevice device )

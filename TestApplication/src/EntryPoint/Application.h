@@ -6,6 +6,8 @@
 
 const std::vector<const char*> ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
 
+const std::vector<const char*> DeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
 #ifdef NDEBUG
 
 	const bool EnableValidationLayers = false;
@@ -29,6 +31,15 @@ struct QueueFamilyIndices
 	}
 };
 
+struct SwapChainSupportDetails
+{
+	VkSurfaceCapabilitiesKHR Capabilities;
+
+	std::vector<VkSurfaceFormatKHR> Formats;
+
+	std::vector<VkPresentModeKHR> PresentModes;
+};
+
 class Application
 {
 public:
@@ -49,7 +60,11 @@ private:
 
 	void CreateLogicalDevice();
 
+	SwapChainSupportDetails QuerySwapChainSupport( VkPhysicalDevice device );
+
 	bool IsDeviceSuitable( VkPhysicalDevice device );
+
+	bool CheckDeviceExtensionSupport( VkPhysicalDevice device );
 
 	int32_t RateDeviceSuitability( VkPhysicalDevice device );
 

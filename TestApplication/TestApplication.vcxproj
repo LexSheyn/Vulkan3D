@@ -107,6 +107,9 @@
     <ClInclude Include="src\EntryPoint\Application.h" />
     <ClInclude Include="src\PrecompiledHeaders\stdafx.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="vk_layer_settings.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
