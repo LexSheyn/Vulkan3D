@@ -45,6 +45,8 @@ void Application::InitVulkan()
 	this->CreateSwapChain();
 
 	this->CreateImageViews();
+
+	this->CreateGraphicsPipeline();
 }
 
 void Application::PickPhisicalDevice()
@@ -252,6 +254,11 @@ void Application::CreateImageViews()
 			throw std::runtime_error( "ERROR::Application::CreateImageViews: Failed to create image views!" );
 		}
 	}
+}
+
+void Application::CreateGraphicsPipeline()
+{
+	//
 }
 
 VkSurfaceFormatKHR Application::ChooseSwapSurfaceFormat( const std::vector<VkSurfaceFormatKHR>& availableFormats )
