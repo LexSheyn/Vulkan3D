@@ -43,6 +43,8 @@ void Application::InitVulkan()
 	this->CreateLogicalDevice();
 
 	this->CreateSwapChain();
+
+	this->CreateImageViews();
 }
 
 void Application::PickPhisicalDevice()
@@ -219,6 +221,37 @@ void Application::CreateSwapChain()
 	SwapChainImageFormat = surfaceFormat.format;
 
 	SwapChainExtent      = extent;
+}
+
+void Application::CreateImageViews()
+{
+	SwapChainImageViews.resize( SwapChainImages.size() );
+
+	for ( size_t i = 0u; i < SwapChainImages.size(); i++ )
+	{
+		VkImageViewCreateInfo imageViewCreateInfo{};
+
+		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewCreateInfo.image = SwapChainImages[i];
+		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		imageViewCreateInfo.format = SwapChainImageFormat;
+
+		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY; 
+		imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+		imageViewCreateInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageViewCreateInfo.subresourceRange.baseMipLevel   = 0u;
+		imageViewCreateInfo.subresourceRange.levelCount     = 1u; // L E V E L
+		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0u;
+		imageViewCreateInfo.subresourceRange.layerCount     = 1u; // L A Y E R
+
+		if ( vkCreateImageView( Device, &imageViewCreateInfo, nullptr, &SwapChainImageViews[i] ) != VK_SUCCESS )
+		{
+			throw std::runtime_error( "ERROR::Application::CreateImageViews: Failed to create image views!" );
+		}
+	}
 }
 
 VkSurfaceFormatKHR Application::ChooseSwapSurfaceFormat( const std::vector<VkSurfaceFormatKHR>& availableFormats )
@@ -562,6 +595,11 @@ void Application::MainLoop()
 
 void Application::Cleanup()
 {
+	for ( auto imageView : SwapChainImageViews )
+	{
+		vkDestroyImageView( Device, imageView, nullptr );
+	}
+
 	vkDestroySwapchainKHR( Device, SwapChain, nullptr );
 
 	vkDestroyDevice( Device, nullptr );

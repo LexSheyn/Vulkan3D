@@ -62,6 +62,8 @@ private:
 
 	void CreateSwapChain();
 
+	void CreateImageViews();
+
 	VkSurfaceFormatKHR ChooseSwapSurfaceFormat( const std::vector<VkSurfaceFormatKHR>& availableFormats );
 
 	VkPresentModeKHR ChooseSwapPresentMode( const std::vector<VkPresentModeKHR>& availablePresentModes );
@@ -154,6 +156,8 @@ private:
 	VkFormat SwapChainImageFormat;
 
 	VkExtent2D SwapChainExtent;
+
+	std::vector<VkImageView> SwapChainImageViews;
 };
 
 #pragma warning( pop ) // Vulkan SDK - End
