@@ -41,6 +41,8 @@ void Application::InitVulkan()
 	this->PickPhisicalDevice();
 
 	this->CreateLogicalDevice();
+
+	this->CreateSwapChain();
 }
 
 void Application::PickPhisicalDevice()
@@ -152,6 +154,113 @@ void Application::CreateLogicalDevice()
 
 	vkGetDeviceQueue( Device, indices.GraphicsFamily.value(), 0u, &GraphicsQueue );
 	vkGetDeviceQueue( Device, indices.PresentFamily.value() , 0u, &PresentQueue  );
+}
+
+void Application::CreateSwapChain()
+{
+	SwapChainSupportDetails swapChainSupport = this->QuerySwapChainSupport( PhysicalDevice );
+
+	VkSurfaceFormatKHR surfaceFormat = this->ChooseSwapSurfaceFormat( swapChainSupport.Formats );
+	VkPresentModeKHR   presentMode   = this->ChooseSwapPresentMode( swapChainSupport.PresentModes );
+	VkExtent2D         extent        = this->ChooseSwapExtent( swapChainSupport.Capabilities );
+
+	uint32_t imageCount = swapChainSupport.Capabilities.minImageCount + 1u;
+
+	if ( swapChainSupport.Capabilities.maxImageCount > 0u && imageCount > swapChainSupport.Capabilities.maxImageCount )
+	{
+		imageCount = swapChainSupport.Capabilities.maxImageCount;
+	}
+
+	VkSwapchainCreateInfoKHR swapChainCreateInfo{};
+
+	swapChainCreateInfo.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	swapChainCreateInfo.surface          = Surface;
+	swapChainCreateInfo.minImageCount    = imageCount;
+	swapChainCreateInfo.imageFormat      = surfaceFormat.format;
+	swapChainCreateInfo.imageColorSpace  = surfaceFormat.colorSpace;
+	swapChainCreateInfo.imageExtent      = extent;
+	swapChainCreateInfo.imageArrayLayers = 1u;
+	swapChainCreateInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+	QueueFamilyIndices indices = this->FindQueueFamilies( PhysicalDevice );
+
+	uint32_t queueFamilyIndices[] = { indices.GraphicsFamily.value(), indices.PresentFamily.value() };
+
+	if ( indices.GraphicsFamily != indices.PresentFamily )
+	{
+		swapChainCreateInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
+		swapChainCreateInfo.queueFamilyIndexCount = 2u;
+		swapChainCreateInfo.pQueueFamilyIndices   = queueFamilyIndices;
+	}
+	else
+	{
+		swapChainCreateInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+		swapChainCreateInfo.queueFamilyIndexCount = 0u;      // Optional.
+		swapChainCreateInfo.pQueueFamilyIndices   = nullptr; // Optional.
+	}
+
+	swapChainCreateInfo.preTransform   = swapChainSupport.Capabilities.currentTransform;
+	swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	swapChainCreateInfo.presentMode    = presentMode;
+	swapChainCreateInfo.clipped        = VK_TRUE;
+	swapChainCreateInfo.oldSwapchain   = VK_NULL_HANDLE;
+
+	if ( vkCreateSwapchainKHR( Device, &swapChainCreateInfo, nullptr, &SwapChain ) != VK_SUCCESS )
+	{
+		throw std::runtime_error( "ERROR::Application::CreateSwapChain: Failed to create swap chain!" );
+	}
+}
+
+VkSurfaceFormatKHR Application::ChooseSwapSurfaceFormat( const std::vector<VkSurfaceFormatKHR>& availableFormats )
+{
+	for ( const auto& availableFormat : availableFormats )
+	{
+		if ( availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR )
+		{
+			return availableFormat;
+		}		
+	}
+
+	return availableFormats[0];
+}
+
+VkPresentModeKHR Application::ChooseSwapPresentMode( const std::vector<VkPresentModeKHR>& availablePresentModes )
+{
+	for ( const auto& availablePresentMode : availablePresentModes )
+	{
+		if ( availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR )
+		{
+			return availablePresentMode;
+		}
+	}
+
+	return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D Application::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities)
+{
+	if ( surfaceCapabilities.currentExtent.width != UINT32_MAX )
+	{
+		return surfaceCapabilities.currentExtent;
+	}
+	else
+	{
+		int32_t width;
+		int32_t height;
+		
+		glfwGetFramebufferSize( Window, &width, &height );
+
+		VkExtent2D actualExtent =
+		{
+			static_cast<uint32_t>( width  ),
+			static_cast<uint32_t>( height )
+		};
+
+		actualExtent.width  = std::clamp( actualExtent.width , surfaceCapabilities.minImageExtent.width , surfaceCapabilities.maxImageExtent.width  );
+		actualExtent.height = std::clamp( actualExtent.height, surfaceCapabilities.minImageExtent.height, surfaceCapabilities.maxImageExtent.height );
+
+		return actualExtent;
+	}
 }
 
 SwapChainSupportDetails Application::QuerySwapChainSupport(VkPhysicalDevice device)
@@ -443,6 +552,8 @@ void Application::MainLoop()
 
 void Application::Cleanup()
 {
+	vkDestroySwapchainKHR( Device, SwapChain, nullptr );
+
 	vkDestroyDevice( Device, nullptr );
 
 	if ( EnableValidationLayers )

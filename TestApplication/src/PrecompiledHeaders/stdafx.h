@@ -26,5 +26,7 @@
 #include <unordered_map>
 #include <optional>
 #include <set>
+#include <cstdint>
+#include <algorithm>
 
 #endif // STDAFX_H

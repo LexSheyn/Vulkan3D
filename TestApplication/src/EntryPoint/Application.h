@@ -60,6 +60,14 @@ private:
 
 	void CreateLogicalDevice();
 
+	void CreateSwapChain();
+
+	VkSurfaceFormatKHR ChooseSwapSurfaceFormat( const std::vector<VkSurfaceFormatKHR>& availableFormats );
+
+	VkPresentModeKHR ChooseSwapPresentMode( const std::vector<VkPresentModeKHR>& availablePresentModes );
+
+	VkExtent2D ChooseSwapExtent( const VkSurfaceCapabilitiesKHR& surfaceCapabilities );
+
 	SwapChainSupportDetails QuerySwapChainSupport( VkPhysicalDevice device );
 
 	bool IsDeviceSuitable( VkPhysicalDevice device );
@@ -138,6 +146,8 @@ private:
 
 	VkQueue  GraphicsQueue;
 	VkQueue  PresentQueue;
+
+	VkSwapchainKHR SwapChain;
 };
 
 #pragma warning( pop ) // Vulkan SDK - End
