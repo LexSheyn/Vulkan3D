@@ -148,6 +148,12 @@ private:
 	VkQueue  PresentQueue;
 
 	VkSwapchainKHR SwapChain;
+
+	std::vector<VkImage> SwapChainImages;
+
+	VkFormat SwapChainImageFormat;
+
+	VkExtent2D SwapChainExtent;
 };
 
 #pragma warning( pop ) // Vulkan SDK - End

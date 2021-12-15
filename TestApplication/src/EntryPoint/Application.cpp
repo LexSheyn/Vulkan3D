@@ -209,6 +209,16 @@ void Application::CreateSwapChain()
 	{
 		throw std::runtime_error( "ERROR::Application::CreateSwapChain: Failed to create swap chain!" );
 	}
+
+	vkGetSwapchainImagesKHR( Device, SwapChain, &imageCount, nullptr );
+
+	SwapChainImages.resize( imageCount );
+
+	vkGetSwapchainImagesKHR( Device, SwapChain, &imageCount, SwapChainImages.data() );
+
+	SwapChainImageFormat = surfaceFormat.format;
+
+	SwapChainExtent      = extent;
 }
 
 VkSurfaceFormatKHR Application::ChooseSwapSurfaceFormat( const std::vector<VkSurfaceFormatKHR>& availableFormats )
