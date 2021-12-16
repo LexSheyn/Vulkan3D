@@ -21,7 +21,10 @@
     <ClCompile Include="src\PrecompiledHeaders\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\EntryPoint\Application.cpp">
+    <ClCompile Include="src\Application\Application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShaderCompiler\ShaderCompiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,11 +32,18 @@
     <ClInclude Include="src\PrecompiledHeaders\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\EntryPoint\Application.h">
+    <ClInclude Include="src\Application\Application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShaderCompiler\ShaderCompiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="vk_layer_settings.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Shaders\vertex_shader.vert" />
+    <None Include="src\Shaders\fragment_shader.frag" />
   </ItemGroup>
 </Project>

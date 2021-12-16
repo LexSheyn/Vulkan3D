@@ -37,6 +37,8 @@ typedef double             float64;
 
 // C++ core:
 #include <iostream>
+#include <fstream>
+#include <filesystem>
 #include <stdexcept>
 #include <cstdlib>
 #include <thread>

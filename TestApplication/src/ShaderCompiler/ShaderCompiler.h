@@ -15,48 +15,19 @@ namespace t3d
 
 	// Fumctions:
 
-		/// <summary>
-		/// Preprocess GLSL shader.
-		/// </summary>
-		/// <param name="sourceName"></param>
-		/// <param name="shaderKind"></param>
-		/// <param name="source"></param>
-		/// <returns>
-		/// GLSL shader source text after proprocessing.
-		/// </returns>
-		std::string PreprocessShader( const char* sourceName, shaderc_shader_kind shaderKind, const std::string& source );
+		std::string LoadShader( const char* filePath );
 
-		/// <summary>
-		/// Compiles shader to the SPIR-V assembly.
-		/// </summary>
-		/// <param name="sourceName"></param>
-		/// <param name="shaderKind"></param>
-		/// <param name="source"></param>
-		/// <param name="optimize"></param>
-		/// <returns>
-		/// Assembly text as a string.
-		/// </returns>
-		std::string CompileFileToAssembly( const char* sourceName, shaderc_shader_kind shaderKind, const std::string& source, bool8 optimize = false );
-
-		/// <summary>
-		/// Compiles shader to the SPIR-V bytecode.
-		/// </summary>
-		/// <param name="sourceName"></param>
-		/// <param name="shaderKind"></param>
-		/// <param name="source"></param>
-		/// <param name="optimize"></param>
-		/// <returns>
-		/// Bytecode as a vector of 32-bit unsigned integers.
-		/// </returns>
-		std::vector<uint32> CompileFile( const char* sourceName, shaderc_shader_kind shaderKind, const std::string& source, bool8 optimize = false );
+	//	std::vector<uint32> CompileVertexShader( const char* fileName, const std::string& shaderCode );
+	//
+	//	std::vector<uint32> CompileFragmentShader( const char* fileName, const std::string& shaderCode );
 
 	private:
 
 	// Variables:
 
-		shaderc::Compiler m_Compiler;
-
-		shaderc::CompileOptions m_Options;
+	//	shaderc::Compiler m_Compiler;
+	//
+	//	shaderc::CompileOptions m_Options;
 	};
 }
 

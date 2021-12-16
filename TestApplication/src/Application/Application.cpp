@@ -22,6 +22,17 @@ void Application::Run()
 
 void Application::InitWindow()
 {
+	std::string testString = m_ShaderCompiler.LoadShader( "../Shaders/vertex_shader.vert" );
+
+	std::cout << testString << std::endl;
+
+//	std::vector<uint32> testSpirV = m_ShaderCompiler.CompileVertexShader( "WTF", testString );
+//
+//	for ( const auto& test : testSpirV )
+//	{
+//		std::cout << test << std::endl;
+//	}
+
 	glfwInit();
 
 	glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );

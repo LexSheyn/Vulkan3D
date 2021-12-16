@@ -1,6 +1,8 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include "../ShaderCompiler/ShaderCompiler.h"
+
 // Disable warnings from Vulkan SDK:
 #pragma warning( push ) // Vulkan SDK - Begin
 
@@ -160,6 +162,9 @@ private:
 	VkExtent2D SwapChainExtent;
 
 	std::vector<VkImageView> SwapChainImageViews;
+
+	// TEST
+	t3d::ShaderCompiler m_ShaderCompiler;
 };
 
 #pragma warning( pop ) // Vulkan SDK - End
