@@ -68,6 +68,8 @@ private:
 
 	void CreateGraphicsPipeline();
 
+	VkShaderModule CreateShaderModule( const std::vector<char>& code );
+
 	VkSurfaceFormatKHR ChooseSwapSurfaceFormat( const std::vector<VkSurfaceFormatKHR>& availableFormats );
 
 	VkPresentModeKHR ChooseSwapPresentMode( const std::vector<VkPresentModeKHR>& availablePresentModes );

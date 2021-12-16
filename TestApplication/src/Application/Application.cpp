@@ -22,17 +22,6 @@ void Application::Run()
 
 void Application::InitWindow()
 {
-	std::string testString = m_ShaderCompiler.LoadShader( "../Shaders/vertex_shader.vert" );
-
-	std::cout << testString << std::endl;
-
-//	std::vector<uint32> testSpirV = m_ShaderCompiler.CompileVertexShader( "WTF", testString );
-//
-//	for ( const auto& test : testSpirV )
-//	{
-//		std::cout << test << std::endl;
-//	}
-
 	glfwInit();
 
 	glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
@@ -269,7 +258,50 @@ void Application::CreateImageViews()
 
 void Application::CreateGraphicsPipeline()
 {
+// ------------------------------ TEST SETTINGS ------------------------------
+	m_ShaderCompiler.SetDirectoryGLSL( "D:/VULKAN_3D_SHADERS/GLSL/" );
+	m_ShaderCompiler.SetDirectorySPV(  "D:/VULKAN_3D_SHADERS/SPV/"  );
+// ---------------------------------------------------------------------------
+
+//	std::string fragmentShaderCode = m_ShaderCompiler.LoadGLSL( "fragment_shader.frag" );
+//
+//	std::cout << fragmentShaderCode << std::endl;
+//
+//	shaderc::AssemblyCompilationResult compilationResult = m_ShaderCompiler.CompileFragmentShader( fragmentShaderCode );
+//
+//	m_ShaderCompiler.SaveToSPV( "fragment_shader", { compilationResult.cbegin(), compilationResult.cend() } );
+
+	auto vertexShaderCode   = m_ShaderCompiler.LoadSPV( "vertex_shader" );
+	auto fragmentShaderCode = m_ShaderCompiler.LoadSPV( "fragment_shader" );
+
+//	std::cout << "Vertex Shader size: "   << vertexShaderCode.size()   * sizeof(char) << std::endl;
+//	std::cout << "Fragment Shader size: " << fragmentShaderCode.size() * sizeof(char) << std::endl;
+
+	VkShaderModule vertexShaderModule   = this->CreateShaderModule( vertexShaderCode );
+	VkShaderModule fragmentShaderModule = this->CreateShaderModule( fragmentShaderCode );
+
 	//
+
+	vkDestroyShaderModule( Device, fragmentShaderModule, nullptr );
+	vkDestroyShaderModule( Device, vertexShaderModule  , nullptr );
+}
+
+VkShaderModule Application::CreateShaderModule( const std::vector<char>& code )
+{
+	VkShaderModuleCreateInfo shaderModuleCreateInfo{};
+
+	shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	shaderModuleCreateInfo.codeSize = code.size();
+	shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>( code.data() );
+
+	VkShaderModule shaderModule;
+
+	if ( vkCreateShaderModule( Device, &shaderModuleCreateInfo, nullptr, &shaderModule ) != VK_SUCCESS )
+	{
+		throw std::runtime_error( "ERROR::Application::CreateShaderModule: Failed to create shader module!" );
+	}
+
+	return shaderModule;
 }
 
 VkSurfaceFormatKHR Application::ChooseSwapSurfaceFormat( const std::vector<VkSurfaceFormatKHR>& availableFormats )
