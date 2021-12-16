@@ -44,7 +44,12 @@ namespace t3d
         {
             while ( std::getline(inFile, line) )
             {
-                shaderCode += line + '\n';
+                shaderCode += line;
+
+                if ( !inFile.eof() )
+                {
+                    shaderCode += '\n';
+                }
             }
         }
         else

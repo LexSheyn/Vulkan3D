@@ -271,8 +271,12 @@ void Application::CreateGraphicsPipeline()
 //
 //	m_ShaderCompiler.SaveToSPV( "fragment_shader", { compilationResult.cbegin(), compilationResult.cend() } );
 
-	auto vertexShaderCode   = m_ShaderCompiler.LoadSPV( "vertex_shader" );
-	auto fragmentShaderCode = m_ShaderCompiler.LoadSPV( "fragment_shader" );
+	std::string TEST =  m_ShaderCompiler.LoadGLSL("shader.vert");
+
+	std::cout << TEST << std::endl;
+
+	auto vertexShaderCode   = m_ShaderCompiler.LoadSPV( "vert" );
+	auto fragmentShaderCode = m_ShaderCompiler.LoadSPV( "frag" );
 
 //	std::cout << "Vertex Shader size: "   << vertexShaderCode.size()   * sizeof(char) << std::endl;
 //	std::cout << "Fragment Shader size: " << fragmentShaderCode.size() * sizeof(char) << std::endl;
