@@ -94,29 +94,46 @@ namespace t3d
         return compilationResult;
     }
 
-    void ShaderCompiler::SaveToSPV( const char* outputFileName, const std::string& shaderBytecode )
+    void ShaderCompiler::SaveToSPV( const char* outputFileName, const std::string& assemblyCode )
     {
         std::string filePath = m_DirectorySPV + outputFileName + m_OutputExtension;
 
-        std::ofstream outFile;
+    //    std::ofstream outFile;
+    //
+    //    outFile.open( filePath, std::ios::out | std::ios::binary );
+    //
+    //    if ( outFile.is_open() )
+    //    {
+    //        for ( size_t i = 0u; i < assemblyCode.size(); i++ )
+    //        {
+    //            outFile.write( (char8*)&assemblyCode[i], sizeof(char8) );
+    //        }
+    //    }
+    //    else
+    //    {
+    //        std::cout << "ERROR::ShaderCompiler::SaveToSPV: Failed to create file " << filePath << std::endl;
+    //
+    //        return;
+    //    }
+    //
+    //    outFile.close();
+    //
+    //    if ( !outFile.good() )
+    //    {
+    //        std::cout << "ERROR::ShaderCompiler::SaveToSPV: Error occured at writing time!" << std::endl;
+    //
+    //        return;
+    //    }
 
-        outFile.open( filePath, std::ios::binary );
+        std::FILE* pFile;
+    
+        #pragma warning( disable: 4996 )
 
-        if ( outFile.is_open() )
-        {
-            for ( size_t i = 0u; i < shaderBytecode.size(); i++ )
-            {
-                outFile << shaderBytecode[i];
-            }
-        }
-        else
-        {
-            std::cout << "ERROR::ShaderCompiler::SaveToSPV: Failed to create file " << filePath << std::endl;
+        pFile = fopen( filePath.c_str(), "w" );
+    
+        fwrite( assemblyCode.c_str(), sizeof(char8), assemblyCode.size(), pFile );
 
-            return;
-        }
-
-        outFile.close();
+        fclose( pFile );
     }
 
     std::vector<char8> ShaderCompiler::LoadSPV(const char* fileName)
@@ -138,6 +155,7 @@ namespace t3d
             buffer.resize( fileSize );
 
             inFile.seekg(0);
+
             inFile.read( buffer.data(), fileSize );
         }
         else

@@ -263,17 +263,17 @@ void Application::CreateGraphicsPipeline()
 	m_ShaderCompiler.SetDirectorySPV(  "D:/VULKAN_3D_SHADERS/SPV/"  );
 // ---------------------------------------------------------------------------
 
-//	std::string fragmentShaderCode = m_ShaderCompiler.LoadGLSL( "fragment_shader.frag" );
+//	std::string shaderCode = m_ShaderCompiler.LoadGLSL( "shader.frag" );
 //
-//	std::cout << fragmentShaderCode << std::endl;
+//	std::cout << shaderCode << std::endl;
 //
-//	shaderc::AssemblyCompilationResult compilationResult = m_ShaderCompiler.CompileFragmentShader( fragmentShaderCode );
+//	shaderc::AssemblyCompilationResult compilationResult = m_ShaderCompiler.CompileFragmentShader( shaderCode );
 //
 //	m_ShaderCompiler.SaveToSPV( "fragment_shader", { compilationResult.cbegin(), compilationResult.cend() } );
 
-	std::string TEST =  m_ShaderCompiler.LoadGLSL("shader.vert");
-
-	std::cout << TEST << std::endl;
+//	std::string TEST =  m_ShaderCompiler.LoadGLSL("shader.vert");
+//
+//	std::cout << TEST << std::endl;
 
 	auto vertexShaderCode   = m_ShaderCompiler.LoadSPV( "vert" );
 	auto fragmentShaderCode = m_ShaderCompiler.LoadSPV( "frag" );
@@ -284,7 +284,77 @@ void Application::CreateGraphicsPipeline()
 	VkShaderModule vertexShaderModule   = this->CreateShaderModule( vertexShaderCode );
 	VkShaderModule fragmentShaderModule = this->CreateShaderModule( fragmentShaderCode );
 
-	//
+// Vertex shader stage create info:
+
+	VkPipelineShaderStageCreateInfo vertexShaderStageInfo{};
+
+	vertexShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vertexShaderStageInfo.stage  = VK_SHADER_STAGE_VERTEX_BIT;
+	vertexShaderStageInfo.module = vertexShaderModule;
+	vertexShaderStageInfo.pName  = "main";
+
+// Fragment shader stage create info:
+
+	VkPipelineShaderStageCreateInfo fragmentShaderStageInfo{};
+
+	fragmentShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	fragmentShaderStageInfo.stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
+	fragmentShaderStageInfo.module = fragmentShaderModule;
+	fragmentShaderStageInfo.pName  = "main";
+
+	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderStageInfo, fragmentShaderStageInfo };
+
+	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+
+	vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vertexInputInfo.vertexBindingDescriptionCount   = 0u;
+	vertexInputInfo.pVertexBindingDescriptions      = nullptr; // Optional.
+	vertexInputInfo.vertexAttributeDescriptionCount = 0u;
+	vertexInputInfo.pVertexAttributeDescriptions    = nullptr; // Optional.
+
+	VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
+
+	inputAssemblyInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	inputAssemblyInfo.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
+
+	VkViewport viewport{};
+
+	viewport.x        = 0.0f;
+	viewport.y        = 0.0f;
+	viewport.width    = static_cast<float>( SwapChainExtent.width );
+	viewport.height   = static_cast<float>( SwapChainExtent.height );
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+
+	VkRect2D scissor{};
+
+	scissor.offset = { 0, 0 };
+	scissor.extent = SwapChainExtent;
+
+	VkPipelineViewportStateCreateInfo viewportStateInfo{};
+
+	viewportStateInfo.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewportStateInfo.viewportCount = 1u;
+	viewportStateInfo.pViewports    = &viewport;
+	viewportStateInfo.scissorCount  = 1u;
+	viewportStateInfo.pScissors     = &scissor;
+
+	VkPipelineRasterizationStateCreateInfo rasterizationInfo{};
+
+	rasterizationInfo.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	rasterizationInfo.depthClampEnable        = VK_FALSE;
+	rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
+	rasterizationInfo.polygonMode             = VK_POLYGON_MODE_FILL;
+	rasterizationInfo.lineWidth               = 1.0f;
+	rasterizationInfo.cullMode                = VK_CULL_MODE_BACK_BIT;
+	rasterizationInfo.frontFace               = VK_FRONT_FACE_CLOCKWISE;
+	rasterizationInfo.depthBiasEnable         = VK_FALSE;
+	rasterizationInfo.depthBiasConstantFactor = 0.0f; // Optional.
+	rasterizationInfo.depthBiasClamp          = 0.0f; // Optional.
+	rasterizationInfo.depthBiasSlopeFactor    = 0.0f; // Optional.
+
+// Delete shader modules:
 
 	vkDestroyShaderModule( Device, fragmentShaderModule, nullptr );
 	vkDestroyShaderModule( Device, vertexShaderModule  , nullptr );
@@ -294,9 +364,9 @@ VkShaderModule Application::CreateShaderModule( const std::vector<char>& code )
 {
 	VkShaderModuleCreateInfo shaderModuleCreateInfo{};
 
-	shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	shaderModuleCreateInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	shaderModuleCreateInfo.codeSize = code.size();
-	shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>( code.data() );
+	shaderModuleCreateInfo.pCode    = reinterpret_cast<const uint32_t*>( code.data() );
 
 	VkShaderModule shaderModule;
 

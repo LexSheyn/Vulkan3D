@@ -21,7 +21,7 @@ namespace t3d
 
 		shaderc::AssemblyCompilationResult CompileFragmentShader( const std::string& shaderCode, shaderc_optimization_level optimizationLevel = shaderc_optimization_level_performance );
 
-		void SaveToSPV( const char* outputFileName, const std::string& shaderCode );
+		void SaveToSPV( const char* outputFileName, const std::string& assemblyCode );
 
 		std::vector<char8> LoadSPV( const char* fileName );
 
