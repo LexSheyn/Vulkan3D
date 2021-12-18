@@ -354,6 +354,62 @@ void Application::CreateGraphicsPipeline()
 	rasterizationInfo.depthBiasClamp          = 0.0f; // Optional.
 	rasterizationInfo.depthBiasSlopeFactor    = 0.0f; // Optional.
 
+	VkPipelineMultisampleStateCreateInfo multisampleInfo{};
+
+	multisampleInfo.sType                 = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	multisampleInfo.sampleShadingEnable   = VK_FALSE;
+	multisampleInfo.rasterizationSamples  = VK_SAMPLE_COUNT_1_BIT;
+	multisampleInfo.minSampleShading      = 1.0f;     // Optional.
+	multisampleInfo.pSampleMask           = nullptr;  // Optional.
+	multisampleInfo.alphaToCoverageEnable = VK_FALSE; // Optional.
+	multisampleInfo.alphaToOneEnable      = VK_FALSE; // Optional.
+
+//	VkPipelineDepthStencilStateCreateInfo
+
+	VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+
+	colorBlendAttachment.colorWriteMask      = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachment.blendEnable         = VK_TRUE;
+	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;           // Optional.
+	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA; // Optional.
+	colorBlendAttachment.colorBlendOp        = VK_BLEND_OP_ADD;                     // Optional.
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;                 // Optional.
+	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;                // Optional.
+	colorBlendAttachment.alphaBlendOp        = VK_BLEND_OP_ADD;                     // Optional.
+
+	VkPipelineColorBlendStateCreateInfo colorBlendingInfo{};
+
+	colorBlendingInfo.sType             = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	colorBlendingInfo.logicOpEnable     = VK_FALSE;
+	colorBlendingInfo.logicOp           = VK_LOGIC_OP_COPY; // Optional.
+	colorBlendingInfo.attachmentCount   = 1u;
+	colorBlendingInfo.pAttachments      = &colorBlendAttachment;
+	colorBlendingInfo.blendConstants[0] = 0.0f;             // Optional.
+	colorBlendingInfo.blendConstants[1] = 0.0f;             // Optional.
+	colorBlendingInfo.blendConstants[2] = 0.0f;             // Optional.
+	colorBlendingInfo.blendConstants[3] = 0.0f;             // Optional.
+
+	VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_LINE_WIDTH };
+
+	VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
+
+	dynamicStateInfo.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamicStateInfo.dynamicStateCount = 2u;
+	dynamicStateInfo.pDynamicStates    = dynamicStates;
+
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+
+	pipelineLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount         = 0u;      // Optional.
+	pipelineLayoutInfo.pSetLayouts            = nullptr; // Optional.
+	pipelineLayoutInfo.pushConstantRangeCount = 0u;      // Optional.
+	pipelineLayoutInfo.pPushConstantRanges    = nullptr; // Optional.
+	
+	if ( vkCreatePipelineLayout( Device, &pipelineLayoutInfo, nullptr, &PipelineLayout ) != VK_SUCCESS )
+	{
+		throw std::runtime_error( "ERROR::Application::CreateGraphicsPipeline: Failed to create pipeline layout!" );
+	}
+
 // Delete shader modules:
 
 	vkDestroyShaderModule( Device, fragmentShaderModule, nullptr );
@@ -719,6 +775,8 @@ void Application::MainLoop()
 
 void Application::Cleanup()
 {
+	vkDestroyPipelineLayout( Device, PipelineLayout, nullptr );
+
 	for ( auto imageView : SwapChainImageViews )
 	{
 		vkDestroyImageView( Device, imageView, nullptr );

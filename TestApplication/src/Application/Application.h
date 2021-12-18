@@ -165,6 +165,8 @@ private:
 
 	std::vector<VkImageView> SwapChainImageViews;
 
+	VkPipelineLayout PipelineLayout;
+
 	// TEST
 	t3d::ShaderCompiler m_ShaderCompiler;
 };
