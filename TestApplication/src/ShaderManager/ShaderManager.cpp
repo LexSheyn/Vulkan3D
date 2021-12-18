@@ -1,5 +1,5 @@
 #include "../PrecompiledHeaders/stdafx.h"
-#include "ShaderCompiler.h"
+#include "ShaderManager.h"
 
 // Disable warnings from Vulkan SDK:
 #pragma warning( push ) // Vulkan SDK - Begin
@@ -8,7 +8,7 @@ namespace t3d
 {
     // Constructors and Destructor:
 
-    ShaderCompiler::ShaderCompiler()
+    ShaderManager::ShaderManager()
     {
         m_DirectoryGLSL.reserve(MAX_PATH);  // 260
         m_DirectoryGLSL = "../Shaders/";
@@ -20,14 +20,14 @@ namespace t3d
         m_OutputExtension = ".spv";
     }
 
-    ShaderCompiler::~ShaderCompiler()
+    ShaderManager::~ShaderManager()
     {
     }
 
 
     // Functions:
 
-    std::string ShaderCompiler::LoadGLSL( const char* fileName )
+    std::string ShaderManager::LoadGLSL( const char* fileName )
     {
         std::string shaderCode;
         std::string line;
@@ -54,7 +54,7 @@ namespace t3d
         }
         else
         {
-            std::cout << "ERROR::ShaderCompiler::LoadGLSL: Failed to open file " << filePath << std::endl;
+            std::cout << "ERROR::ShaderManager::LoadGLSL: Failed to open file " << filePath << std::endl;
 
             return std::string();
         }
@@ -66,7 +66,7 @@ namespace t3d
         return shaderCode;
     }
 
-    shaderc::AssemblyCompilationResult ShaderCompiler::CompileVertexShader( const std::string& shaderCode, shaderc_optimization_level optimizationLevel )
+    shaderc::AssemblyCompilationResult ShaderManager::CompileVertexShader( const std::string& shaderCode, shaderc_optimization_level optimizationLevel )
     {
         shaderc::CompileOptions options;
 
@@ -80,7 +80,7 @@ namespace t3d
         return compilationResult;
     }
 
-    shaderc::AssemblyCompilationResult ShaderCompiler::CompileFragmentShader( const std::string& shaderCode, shaderc_optimization_level optimizationLevel )
+    shaderc::AssemblyCompilationResult ShaderManager::CompileFragmentShader( const std::string& shaderCode, shaderc_optimization_level optimizationLevel )
     {
         shaderc::CompileOptions options;
 
@@ -94,7 +94,7 @@ namespace t3d
         return compilationResult;
     }
 
-    void ShaderCompiler::SaveToSPV( const char* outputFileName, const std::string& assemblyCode )
+    void ShaderManager::SaveToSPV( const char* outputFileName, const std::string& assemblyCode )
     {
         std::string filePath = m_DirectorySPV + outputFileName + m_OutputExtension;
 
@@ -111,7 +111,7 @@ namespace t3d
     //    }
     //    else
     //    {
-    //        std::cout << "ERROR::ShaderCompiler::SaveToSPV: Failed to create file " << filePath << std::endl;
+    //        std::cout << "ERROR::ShaderManager::SaveToSPV: Failed to create file " << filePath << std::endl;
     //
     //        return;
     //    }
@@ -120,7 +120,7 @@ namespace t3d
     //
     //    if ( !outFile.good() )
     //    {
-    //        std::cout << "ERROR::ShaderCompiler::SaveToSPV: Error occured at writing time!" << std::endl;
+    //        std::cout << "ERROR::ShaderManager::SaveToSPV: Error occured at writing time!" << std::endl;
     //
     //        return;
     //    }
@@ -136,7 +136,7 @@ namespace t3d
         fclose( pFile );
     }
 
-    std::vector<char8> ShaderCompiler::LoadSPV(const char* fileName)
+    std::vector<char8> ShaderManager::LoadSPV(const char* fileName)
     {
         std::string filePath = m_DirectorySPV + fileName + m_OutputExtension;
 
@@ -160,7 +160,7 @@ namespace t3d
         }
         else
         {
-            std::cout << "ERROR::ShaderCompiler::LoadSPV: Failed to open " << filePath << std::endl;
+            std::cout << "ERROR::ShaderManager::LoadSPV: Failed to open " << filePath << std::endl;
 
             return std::vector<char8>();
         }
@@ -173,17 +173,17 @@ namespace t3d
 
     // Modifiers:
 
-    void ShaderCompiler::SetDirectoryGLSL( const std::string& directory )
+    void ShaderManager::SetDirectoryGLSL( const std::string& directory )
     {
         m_DirectoryGLSL = directory;
     }
 
-    void ShaderCompiler::SetDirectorySPV( const std::string& directory )
+    void ShaderManager::SetDirectorySPV( const std::string& directory )
     {
         m_DirectorySPV = directory;
     }
 
-    void ShaderCompiler::SetOutputExtension( const std::string& extension )
+    void ShaderManager::SetOutputExtension( const std::string& extension )
     {
         m_OutputExtension = extension;
     }

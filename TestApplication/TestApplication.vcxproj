@@ -106,12 +106,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="src\ShaderCompiler\ShaderCompiler.cpp" />
+    <ClCompile Include="src\ShaderManager\ShaderManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Application\Application.h" />
     <ClInclude Include="src\PrecompiledHeaders\stdafx.h" />
-    <ClInclude Include="src\ShaderCompiler\ShaderCompiler.h" />
+    <ClInclude Include="src\ShaderManager\ShaderManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="vk_layer_settings.txt" />

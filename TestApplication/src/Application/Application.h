@@ -1,7 +1,7 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include "../ShaderCompiler/ShaderCompiler.h"
+#include "../ShaderManager/ShaderManager.h"
 
 // Disable warnings from Vulkan SDK:
 #pragma warning( push ) // Vulkan SDK - Begin
@@ -65,6 +65,8 @@ private:
 	void CreateSwapChain();
 
 	void CreateImageViews();
+
+	void CreateRenderPass();
 
 	void CreateGraphicsPipeline();
 
@@ -168,7 +170,7 @@ private:
 	VkPipelineLayout PipelineLayout;
 
 	// TEST
-	t3d::ShaderCompiler m_ShaderCompiler;
+	t3d::ShaderManager n_ShaderManager;
 };
 
 #pragma warning( pop ) // Vulkan SDK - End

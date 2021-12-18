@@ -233,10 +233,10 @@ void Application::CreateImageViews()
 	{
 		VkImageViewCreateInfo imageViewCreateInfo{};
 
-		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCreateInfo.image = SwapChainImages[i];
+		imageViewCreateInfo.sType    = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewCreateInfo.image    = SwapChainImages[i];
 		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		imageViewCreateInfo.format = SwapChainImageFormat;
+		imageViewCreateInfo.format   = SwapChainImageFormat;
 
 		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY; 
 		imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -256,11 +256,25 @@ void Application::CreateImageViews()
 	}
 }
 
+void Application::CreateRenderPass()
+{
+	VkAttachmentDescription colorAttachment{};
+
+	colorAttachment.format         = SwapChainImageFormat;
+	colorAttachment.samples        = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachment.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAttachment.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachment.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+}
+
 void Application::CreateGraphicsPipeline()
 {
 // ------------------------------ TEST SETTINGS ------------------------------
-	m_ShaderCompiler.SetDirectoryGLSL( "D:/VULKAN_3D_SHADERS/GLSL/" );
-	m_ShaderCompiler.SetDirectorySPV(  "D:/VULKAN_3D_SHADERS/SPV/"  );
+	n_ShaderManager.SetDirectoryGLSL( "D:/VULKAN_3D_SHADERS/GLSL/" );
+	n_ShaderManager.SetDirectorySPV(  "D:/VULKAN_3D_SHADERS/SPV/"  );
 // ---------------------------------------------------------------------------
 
 //	std::string shaderCode = m_ShaderCompiler.LoadGLSL( "shader.frag" );
@@ -275,8 +289,8 @@ void Application::CreateGraphicsPipeline()
 //
 //	std::cout << TEST << std::endl;
 
-	auto vertexShaderCode   = m_ShaderCompiler.LoadSPV( "vert" );
-	auto fragmentShaderCode = m_ShaderCompiler.LoadSPV( "frag" );
+	auto vertexShaderCode   = n_ShaderManager.LoadSPV( "vert" );
+	auto fragmentShaderCode = n_ShaderManager.LoadSPV( "frag" );
 
 //	std::cout << "Vertex Shader size: "   << vertexShaderCode.size()   * sizeof(char) << std::endl;
 //	std::cout << "Fragment Shader size: " << fragmentShaderCode.size() * sizeof(char) << std::endl;
