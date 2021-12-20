@@ -46,6 +46,8 @@ void Application::InitVulkan()
 
 	this->CreateImageViews();
 
+	this->CreateRenderPass();
+
 	this->CreateGraphicsPipeline();
 }
 
@@ -122,7 +124,7 @@ void Application::CreateLogicalDevice()
 
 		queueCreateInfo.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		queueCreateInfo.queueFamilyIndex = queueFamily;
-		queueCreateInfo.queueCount       = 1u;
+		queueCreateInfo.queueCount       = 1;
 		queueCreateInfo.pQueuePriorities = &queuePriority;
 		
 		queueCreateInfos.push_back( queueCreateInfo );
@@ -148,7 +150,7 @@ void Application::CreateLogicalDevice()
 	}
 	else
 	{
-		deviceCreateInfo.enabledLayerCount   = 0u;
+		deviceCreateInfo.enabledLayerCount   = 0;
 	}
 
 	if ( vkCreateDevice( PhysicalDevice, &deviceCreateInfo, nullptr, &Device ) != VK_SUCCESS )
@@ -156,8 +158,8 @@ void Application::CreateLogicalDevice()
 		throw std::runtime_error( "ERROR::Application::CreateLogicalDevice: Failed to create logical device!" );
 	}
 
-	vkGetDeviceQueue( Device, indices.GraphicsFamily.value(), 0u, &GraphicsQueue );
-	vkGetDeviceQueue( Device, indices.PresentFamily.value() , 0u, &PresentQueue  );
+	vkGetDeviceQueue( Device, indices.GraphicsFamily.value(), 0, &GraphicsQueue );
+	vkGetDeviceQueue( Device, indices.PresentFamily.value() , 0, &PresentQueue  );
 }
 
 void Application::CreateSwapChain()
@@ -183,7 +185,7 @@ void Application::CreateSwapChain()
 	swapChainCreateInfo.imageFormat      = surfaceFormat.format;
 	swapChainCreateInfo.imageColorSpace  = surfaceFormat.colorSpace;
 	swapChainCreateInfo.imageExtent      = extent;
-	swapChainCreateInfo.imageArrayLayers = 1u;
+	swapChainCreateInfo.imageArrayLayers = 1;
 	swapChainCreateInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
 	QueueFamilyIndices indices = this->FindQueueFamilies( PhysicalDevice );
@@ -193,13 +195,13 @@ void Application::CreateSwapChain()
 	if ( indices.GraphicsFamily != indices.PresentFamily )
 	{
 		swapChainCreateInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
-		swapChainCreateInfo.queueFamilyIndexCount = 2u;
+		swapChainCreateInfo.queueFamilyIndexCount = 2;
 		swapChainCreateInfo.pQueueFamilyIndices   = queueFamilyIndices;
 	}
 	else
 	{
 		swapChainCreateInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
-		swapChainCreateInfo.queueFamilyIndexCount = 0u;      // Optional.
+		swapChainCreateInfo.queueFamilyIndexCount = 0;      // Optional.
 		swapChainCreateInfo.pQueueFamilyIndices   = nullptr; // Optional.
 	}
 
@@ -244,10 +246,10 @@ void Application::CreateImageViews()
 		imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
 		imageViewCreateInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-		imageViewCreateInfo.subresourceRange.baseMipLevel   = 0u;
-		imageViewCreateInfo.subresourceRange.levelCount     = 1u; // L E V E L
-		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0u;
-		imageViewCreateInfo.subresourceRange.layerCount     = 1u; // L A Y E R
+		imageViewCreateInfo.subresourceRange.baseMipLevel   = 0;
+		imageViewCreateInfo.subresourceRange.levelCount     = 1; // L E V E L
+		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		imageViewCreateInfo.subresourceRange.layerCount     = 1; // L A Y E R
 
 		if ( vkCreateImageView( Device, &imageViewCreateInfo, nullptr, &SwapChainImageViews[i] ) != VK_SUCCESS )
 		{
@@ -268,6 +270,30 @@ void Application::CreateRenderPass()
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	colorAttachment.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
 	colorAttachment.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colorAttachmentReference{};
+
+	colorAttachmentReference.attachment = 0;
+	colorAttachmentReference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpassDescription{};
+
+	subpassDescription.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpassDescription.colorAttachmentCount = 1;
+	subpassDescription.pColorAttachments    = &colorAttachmentReference;
+
+	VkRenderPassCreateInfo renderPassInfo{};
+
+	renderPassInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassInfo.attachmentCount = 1;
+	renderPassInfo.pAttachments    = &colorAttachment;
+	renderPassInfo.subpassCount    = 1;
+	renderPassInfo.pSubpasses      = &subpassDescription;
+
+	if ( vkCreateRenderPass( Device, &renderPassInfo, nullptr, &RenderPass ) != VK_SUCCESS )
+	{
+		throw std::runtime_error( "ERROR::Application::CreateRenderPass: Failed to create render pass!" );
+	}
 }
 
 void Application::CreateGraphicsPipeline()
@@ -321,9 +347,9 @@ void Application::CreateGraphicsPipeline()
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 
 	vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexBindingDescriptionCount   = 0u;
+	vertexInputInfo.vertexBindingDescriptionCount   = 0;
 	vertexInputInfo.pVertexBindingDescriptions      = nullptr; // Optional.
-	vertexInputInfo.vertexAttributeDescriptionCount = 0u;
+	vertexInputInfo.vertexAttributeDescriptionCount = 0;
 	vertexInputInfo.pVertexAttributeDescriptions    = nullptr; // Optional.
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
@@ -349,9 +375,9 @@ void Application::CreateGraphicsPipeline()
 	VkPipelineViewportStateCreateInfo viewportStateInfo{};
 
 	viewportStateInfo.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	viewportStateInfo.viewportCount = 1u;
+	viewportStateInfo.viewportCount = 1;
 	viewportStateInfo.pViewports    = &viewport;
-	viewportStateInfo.scissorCount  = 1u;
+	viewportStateInfo.scissorCount  = 1;
 	viewportStateInfo.pScissors     = &scissor;
 
 	VkPipelineRasterizationStateCreateInfo rasterizationInfo{};
@@ -364,19 +390,19 @@ void Application::CreateGraphicsPipeline()
 	rasterizationInfo.cullMode                = VK_CULL_MODE_BACK_BIT;
 	rasterizationInfo.frontFace               = VK_FRONT_FACE_CLOCKWISE;
 	rasterizationInfo.depthBiasEnable         = VK_FALSE;
-	rasterizationInfo.depthBiasConstantFactor = 0.0f; // Optional.
-	rasterizationInfo.depthBiasClamp          = 0.0f; // Optional.
-	rasterizationInfo.depthBiasSlopeFactor    = 0.0f; // Optional.
+	rasterizationInfo.depthBiasConstantFactor = 0.0f;                    // Optional.
+	rasterizationInfo.depthBiasClamp          = 0.0f;                    // Optional.
+	rasterizationInfo.depthBiasSlopeFactor    = 0.0f;                    // Optional.
 
 	VkPipelineMultisampleStateCreateInfo multisampleInfo{};
 
 	multisampleInfo.sType                 = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampleInfo.sampleShadingEnable   = VK_FALSE;
 	multisampleInfo.rasterizationSamples  = VK_SAMPLE_COUNT_1_BIT;
-	multisampleInfo.minSampleShading      = 1.0f;     // Optional.
-	multisampleInfo.pSampleMask           = nullptr;  // Optional.
-	multisampleInfo.alphaToCoverageEnable = VK_FALSE; // Optional.
-	multisampleInfo.alphaToOneEnable      = VK_FALSE; // Optional.
+	multisampleInfo.minSampleShading      = 1.0f;                  // Optional.
+	multisampleInfo.pSampleMask           = nullptr;               // Optional.
+	multisampleInfo.alphaToCoverageEnable = VK_FALSE;              // Optional.
+	multisampleInfo.alphaToOneEnable      = VK_FALSE;              // Optional.
 
 //	VkPipelineDepthStencilStateCreateInfo
 
@@ -395,33 +421,59 @@ void Application::CreateGraphicsPipeline()
 
 	colorBlendingInfo.sType             = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colorBlendingInfo.logicOpEnable     = VK_FALSE;
-	colorBlendingInfo.logicOp           = VK_LOGIC_OP_COPY; // Optional.
-	colorBlendingInfo.attachmentCount   = 1u;
+	colorBlendingInfo.logicOp           = VK_LOGIC_OP_COPY;      // Optional.
+	colorBlendingInfo.attachmentCount   = 1;
 	colorBlendingInfo.pAttachments      = &colorBlendAttachment;
-	colorBlendingInfo.blendConstants[0] = 0.0f;             // Optional.
-	colorBlendingInfo.blendConstants[1] = 0.0f;             // Optional.
-	colorBlendingInfo.blendConstants[2] = 0.0f;             // Optional.
-	colorBlendingInfo.blendConstants[3] = 0.0f;             // Optional.
+	colorBlendingInfo.blendConstants[0] = 0.0f;                  // Optional.
+	colorBlendingInfo.blendConstants[1] = 0.0f;                  // Optional.
+	colorBlendingInfo.blendConstants[2] = 0.0f;                  // Optional.
+	colorBlendingInfo.blendConstants[3] = 0.0f;                  // Optional.
 
 	VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_LINE_WIDTH };
 
 	VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
 
 	dynamicStateInfo.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicStateInfo.dynamicStateCount = 2u;
+	dynamicStateInfo.dynamicStateCount = 2;
 	dynamicStateInfo.pDynamicStates    = dynamicStates;
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 
 	pipelineLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount         = 0u;      // Optional.
+	pipelineLayoutInfo.setLayoutCount         = 0;       // Optional.
 	pipelineLayoutInfo.pSetLayouts            = nullptr; // Optional.
-	pipelineLayoutInfo.pushConstantRangeCount = 0u;      // Optional.
+	pipelineLayoutInfo.pushConstantRangeCount = 0;       // Optional.
 	pipelineLayoutInfo.pPushConstantRanges    = nullptr; // Optional.
 	
 	if ( vkCreatePipelineLayout( Device, &pipelineLayoutInfo, nullptr, &PipelineLayout ) != VK_SUCCESS )
 	{
 		throw std::runtime_error( "ERROR::Application::CreateGraphicsPipeline: Failed to create pipeline layout!" );
+	}
+
+// Create pipeline:
+
+	VkGraphicsPipelineCreateInfo pipelineInfo{};
+
+	pipelineInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	pipelineInfo.stageCount          = 2;
+	pipelineInfo.pStages             = shaderStages;
+	pipelineInfo.pVertexInputState   = &vertexInputInfo;
+	pipelineInfo.pInputAssemblyState = &inputAssemblyInfo;
+	pipelineInfo.pViewportState      = &viewportStateInfo;
+	pipelineInfo.pRasterizationState = &rasterizationInfo;
+	pipelineInfo.pMultisampleState   = &multisampleInfo;
+	pipelineInfo.pDepthStencilState  = nullptr;            // Optional.
+	pipelineInfo.pColorBlendState    = &colorBlendingInfo;
+	pipelineInfo.pDynamicState       = nullptr;            // Optional.
+	pipelineInfo.layout              = PipelineLayout;
+	pipelineInfo.renderPass          = RenderPass;
+	pipelineInfo.subpass             = 0;
+	pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE;     // Optional.
+	pipelineInfo.basePipelineIndex   = -1;                 // Optional.
+
+	if ( vkCreateGraphicsPipelines( Device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &GraphicsPipeline ) != VK_SUCCESS )
+	{
+		throw std::runtime_error( "ERROR::Application::CreateGraphicsPipeline: Failed to create graphics pipeline!" );
 	}
 
 // Delete shader modules:
@@ -725,11 +777,11 @@ void Application::CreateInstance()
 	vkEnumerateInstanceExtensionProperties( nullptr, &extensionCount, extensions.data() );
 
 	std::cout << "\n";
-	std::cout << "    Available extensions" << " [" << extensionCount << "]: " << "\n\n";
+	std::cout << "\tAvailable extensions" << " [" << extensionCount << "]: " << "\n\n";
 
 	for ( size_t i = 0u; i < extensions.size(); i++ )
 	{
-		std::cout << "    " << ( i + 1u ) << ".\t" << extensions[i].extensionName << "\t[SpecVersion: " << extensions[i].specVersion << "]" << "\n\n";
+		std::cout << "\t" << ( i + 1u ) << ".\t" << extensions[i].extensionName << " [version " << extensions[i].specVersion << "]" << "\n\n";
 	}
 
 	std::cout << std::endl;
@@ -789,7 +841,11 @@ void Application::MainLoop()
 
 void Application::Cleanup()
 {
+	vkDestroyPipeline( Device, GraphicsPipeline, nullptr );
+
 	vkDestroyPipelineLayout( Device, PipelineLayout, nullptr );
+
+	vkDestroyRenderPass( Device, RenderPass, nullptr );
 
 	for ( auto imageView : SwapChainImageViews )
 	{

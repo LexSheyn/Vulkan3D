@@ -1,6 +1,11 @@
 #ifndef SHADERMANAGER_H
 #define SHADERMANAGER_H
 
+// Disable warnings from ShaderC:
+#pragma warning( push ) // ShaderC - Begin
+#pragma warning( disable : 26495 ) // Uninitialized variable.
+#pragma warning( disable : 26439 ) // Function can not throw exception.
+
 /// <summary>
 /// Short form for Trick3D game engine.
 /// </summary>
@@ -60,5 +65,7 @@ namespace t3d
 		shaderc::Compiler m_Compiler;
 	};
 }
+
+#pragma warning( pop ) // ShaderC - End
 
 #endif // SHADERMANAGER_H

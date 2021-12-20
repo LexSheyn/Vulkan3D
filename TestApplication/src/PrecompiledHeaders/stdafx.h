@@ -21,7 +21,7 @@ typedef double             float64;
 
 // Disable warnings from Vulkan SDK:
 #pragma warning( push ) // Vulkan SDK - Begin
-#pragma warning( disable : 26812) // Uncoped Enum
+#pragma warning( disable : 26812 ) // Uncoped Enum
 
 // GLFW and Vulkan:
 #define VK_USE_PLATFORM_WIN32_KHR

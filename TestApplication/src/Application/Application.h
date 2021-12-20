@@ -1,10 +1,12 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include "../ShaderManager/ShaderManager.h"
-
 // Disable warnings from Vulkan SDK:
 #pragma warning( push ) // Vulkan SDK - Begin
+#pragma warning( disable : 26495 ) // Uninitialized variable.
+#pragma warning( disable : 26439 ) // Function can not throw exception.
+
+#include "../ShaderManager/ShaderManager.h"
 
 const std::vector<const char*> ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
 
@@ -167,7 +169,10 @@ private:
 
 	std::vector<VkImageView> SwapChainImageViews;
 
+	VkRenderPass RenderPass;
 	VkPipelineLayout PipelineLayout;
+
+	VkPipeline GraphicsPipeline;
 
 	// TEST
 	t3d::ShaderManager n_ShaderManager;
