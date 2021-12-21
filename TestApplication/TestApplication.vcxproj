@@ -107,11 +107,17 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\ShaderManager\ShaderManager.cpp" />
+    <ClCompile Include="src\Timer\ScopeTimer32.cpp" />
+    <ClCompile Include="src\Timer\Timer32.cpp" />
+    <ClCompile Include="src\Timer\TimeStep32.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Application\Application.h" />
     <ClInclude Include="src\PrecompiledHeaders\stdafx.h" />
     <ClInclude Include="src\ShaderManager\ShaderManager.h" />
+    <ClInclude Include="src\Timer\ScopeTimer32.h" />
+    <ClInclude Include="src\Timer\Timer32.h" />
+    <ClInclude Include="src\Timer\TimeStep32.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="vk_layer_settings.txt" />

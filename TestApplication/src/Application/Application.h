@@ -8,6 +8,10 @@
 
 #include "../ShaderManager/ShaderManager.h"
 
+#include "../Timer/ScopeTimer32.h"
+#include "../Timer/Timer32.h"
+#include "../Timer/TimeStep32.h"
+
 const std::vector<const char*> ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
 
 const std::vector<const char*> DeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
@@ -71,6 +75,10 @@ private:
 	void CreateRenderPass();
 
 	void CreateGraphicsPipeline();
+
+	void CreateFrameBuffers();
+
+	void CreateCommandPool();
 
 	VkShaderModule CreateShaderModule( const std::vector<char>& code );
 
@@ -168,14 +176,19 @@ private:
 	VkExtent2D SwapChainExtent;
 
 	std::vector<VkImageView> SwapChainImageViews;
+	std::vector<VkFramebuffer> SwapChainFramebuffers;
 
 	VkRenderPass RenderPass;
 	VkPipelineLayout PipelineLayout;
 
 	VkPipeline GraphicsPipeline;
 
+	VkCommandPool CommandPool;
+
 	// TEST
 	t3d::ShaderManager n_ShaderManager;
+
+	float32 m_LastFrameTime = 0.0f;
 };
 
 #pragma warning( pop ) // Vulkan SDK - End

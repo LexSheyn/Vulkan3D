@@ -49,6 +49,10 @@ void Application::InitVulkan()
 	this->CreateRenderPass();
 
 	this->CreateGraphicsPipeline();
+
+	this->CreateFrameBuffers();
+
+	this->CreateCommandPool();
 }
 
 void Application::PickPhisicalDevice()
@@ -482,6 +486,47 @@ void Application::CreateGraphicsPipeline()
 	vkDestroyShaderModule( Device, vertexShaderModule  , nullptr );
 }
 
+void Application::CreateFrameBuffers()
+{
+	SwapChainFramebuffers.resize( SwapChainImageViews.size() );
+
+	for (size_t i = 0u; i < SwapChainImageViews.size(); i++)
+	{
+		VkImageView attachments[] = { SwapChainImageViews[i] };
+
+		VkFramebufferCreateInfo framebufferInfo{};
+
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = RenderPass;
+		framebufferInfo.attachmentCount = 1;
+		framebufferInfo.pAttachments = attachments;
+		framebufferInfo.width = SwapChainExtent.width;
+		framebufferInfo.height = SwapChainExtent.height;
+		framebufferInfo.layers = 1;
+
+		if ( vkCreateFramebuffer( Device, &framebufferInfo, nullptr, &SwapChainFramebuffers[i] ) != VK_SUCCESS )
+		{
+			throw std::runtime_error( "ERROR::Application::CreateFrameBuffers: Failed to create framebuffer!" );
+		}
+	}
+}
+
+void Application::CreateCommandPool()
+{
+	QueueFamilyIndices queueFamilyIndices = this->FindQueueFamilies( PhysicalDevice );
+
+	VkCommandPoolCreateInfo commandPoolInfo{};
+
+	commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	commandPoolInfo.queueFamilyIndex = queueFamilyIndices.GraphicsFamily.value();
+	commandPoolInfo.flags = 0; // Optional.
+
+	if ( vkCreateCommandPool( Device, &commandPoolInfo, nullptr, &CommandPool ) != VK_SUCCESS )
+	{
+		throw std::runtime_error( "ERROR::Application::CreateCommandPool: Failed to create command pool!" );
+	}
+}
+
 VkShaderModule Application::CreateShaderModule( const std::vector<char>& code )
 {
 	VkShaderModuleCreateInfo shaderModuleCreateInfo{};
@@ -829,6 +874,12 @@ void Application::MainLoop()
 {
 	while ( !glfwWindowShouldClose( Window ) )
 	{
+		float32 time = static_cast<float32>(glfwGetTime());
+
+		t3d::TimeStep32  timeStep = time - m_LastFrameTime;
+
+		m_LastFrameTime = time;
+
 		glfwPollEvents();
 
 		// Do stuff...
@@ -841,6 +892,13 @@ void Application::MainLoop()
 
 void Application::Cleanup()
 {
+	vkDestroyCommandPool( Device, CommandPool, nullptr );
+
+	for ( auto framebuffer : SwapChainFramebuffers )
+	{
+		vkDestroyFramebuffer( Device, framebuffer, nullptr );
+	}
+
 	vkDestroyPipeline( Device, GraphicsPipeline, nullptr );
 
 	vkDestroyPipelineLayout( Device, PipelineLayout, nullptr );
