@@ -31,6 +31,7 @@ typedef double             float64;
 #include <GLFW/glfw3native.h>
 
 // ShaderC:
+#pragma warning( disable : 26439 ) // Warning C26439: This kind of function may not throw.Declare it 'noexcept' (f.6).
 #include <shaderc/shaderc.hpp>
 
 #pragma warning( pop ) // Vulkan SDK - End
@@ -51,5 +52,6 @@ typedef double             float64;
 #include <set>
 #include <cstdint>
 #include <algorithm>
+#include <memory>
 
 #endif // STDAFX_H

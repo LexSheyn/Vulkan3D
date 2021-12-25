@@ -16,6 +16,8 @@ const std::vector<const char*> ValidationLayers = { "VK_LAYER_KHRONOS_validation
 
 const std::vector<const char*> DeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
+const size_t MAX_FRAMES_IN_FLIGHT = 2;
+
 #ifdef NDEBUG
 
 	const bool EnableValidationLayers = false;
@@ -80,6 +82,12 @@ private:
 
 	void CreateCommandPool();
 
+	void CreateCommandBuffers();
+
+	void CreateSyncObjects();
+
+	void DrawFrame();
+
 	VkShaderModule CreateShaderModule( const std::vector<char>& code );
 
 	VkSurfaceFormatKHR ChooseSwapSurfaceFormat( const std::vector<VkSurfaceFormatKHR>& availableFormats );
@@ -109,6 +117,10 @@ private:
 	void MainLoop();
 
 	void Cleanup();
+
+	void CleanupSwapChain();
+
+	void RecreateSwaoChain();
 
 	bool CheckValidationLayerSupport();
 
@@ -184,6 +196,18 @@ private:
 	VkPipeline GraphicsPipeline;
 
 	VkCommandPool CommandPool;
+
+	std::vector<VkCommandBuffer> CommandBuffers;
+
+// Multithreded rendering:
+
+	std::vector<VkSemaphore> ImageAvailableSemaphores;
+	std::vector<VkSemaphore> RenderFinishedSemaphores;
+
+	std::vector<VkFence> InFlightFences;
+	std::vector<VkFence> ImagesInFlight;
+
+	size_t CurrentFrame = 0u;
 
 	// TEST
 	t3d::ShaderManager n_ShaderManager;

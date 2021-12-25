@@ -53,6 +53,10 @@ void Application::InitVulkan()
 	this->CreateFrameBuffers();
 
 	this->CreateCommandPool();
+
+	this->CreateCommandBuffers();
+
+	this->CreateSyncObjects();
 }
 
 void Application::PickPhisicalDevice()
@@ -286,6 +290,15 @@ void Application::CreateRenderPass()
 	subpassDescription.colorAttachmentCount = 1;
 	subpassDescription.pColorAttachments    = &colorAttachmentReference;
 
+	VkSubpassDependency subpassDependency{};
+
+	subpassDependency.srcSubpass    = VK_SUBPASS_EXTERNAL;
+	subpassDependency.dstSubpass    = 0;
+	subpassDependency.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependency.srcAccessMask = 0;
+	subpassDependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
 	VkRenderPassCreateInfo renderPassInfo{};
 
 	renderPassInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -293,6 +306,8 @@ void Application::CreateRenderPass()
 	renderPassInfo.pAttachments    = &colorAttachment;
 	renderPassInfo.subpassCount    = 1;
 	renderPassInfo.pSubpasses      = &subpassDescription;
+	renderPassInfo.dependencyCount = 1;
+	renderPassInfo.pDependencies   = &subpassDependency;
 
 	if ( vkCreateRenderPass( Device, &renderPassInfo, nullptr, &RenderPass ) != VK_SUCCESS )
 	{
@@ -319,8 +334,8 @@ void Application::CreateGraphicsPipeline()
 //
 //	std::cout << TEST << std::endl;
 
-	auto vertexShaderCode   = n_ShaderManager.LoadSPV( "vert" );
-	auto fragmentShaderCode = n_ShaderManager.LoadSPV( "frag" );
+	std::vector<char> vertexShaderCode   = n_ShaderManager.LoadSPV( "vert" );
+	std::vector<char> fragmentShaderCode = n_ShaderManager.LoadSPV( "frag" );
 
 //	std::cout << "Vertex Shader size: "   << vertexShaderCode.size()   * sizeof(char) << std::endl;
 //	std::cout << "Fragment Shader size: " << fragmentShaderCode.size() * sizeof(char) << std::endl;
@@ -525,6 +540,157 @@ void Application::CreateCommandPool()
 	{
 		throw std::runtime_error( "ERROR::Application::CreateCommandPool: Failed to create command pool!" );
 	}
+}
+
+void Application::CreateCommandBuffers()
+{
+	CommandBuffers.resize( SwapChainFramebuffers.size() );
+
+	VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
+
+	commandBufferAllocateInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	commandBufferAllocateInfo.commandPool        = CommandPool;
+	commandBufferAllocateInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>( CommandBuffers.size() );
+
+	if ( vkAllocateCommandBuffers( Device, &commandBufferAllocateInfo, CommandBuffers.data() ) != VK_SUCCESS )
+	{
+		throw std::runtime_error( "ERROR::Application::CreateCommandBuffers: Failed to create command buffers!" );
+	}
+
+	for ( size_t i = 0u; i < CommandBuffers.size(); i++ )
+	{
+		VkCommandBufferBeginInfo commandBufferBeginInfo{};
+
+		commandBufferBeginInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		commandBufferBeginInfo.flags            = 0;       // Optional.
+		commandBufferBeginInfo.pInheritanceInfo = nullptr; // Optional.
+
+		if ( vkBeginCommandBuffer( CommandBuffers[i], &commandBufferBeginInfo ) != VK_SUCCESS )
+		{
+			throw std::runtime_error( "ERROR::Application::CreateCommandBuffers: Failed to begin recording command buffer!" );
+		}
+
+		VkClearValue clearColor = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
+
+		VkRenderPassBeginInfo renderPassInfo{};
+
+		renderPassInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass        = RenderPass;
+		renderPassInfo.framebuffer       = SwapChainFramebuffers[i];
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = SwapChainExtent;
+		renderPassInfo.clearValueCount   = 1;
+		renderPassInfo.pClearValues      = &clearColor;
+
+		vkCmdBeginRenderPass( CommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE );
+		
+		vkCmdBindPipeline( CommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline );
+
+		vkCmdDraw( CommandBuffers[i], 3, 1, 0, 0 );
+
+		vkCmdEndRenderPass( CommandBuffers[i] );
+
+		if ( vkEndCommandBuffer( CommandBuffers[i] ) != VK_SUCCESS )
+		{
+			throw std::runtime_error( "ERROR::Appliaction::CreateCommandBuffers: Failed to record command buffer!" );
+		}
+	}
+}
+
+void Application::CreateSyncObjects()
+{
+	ImageAvailableSemaphores.resize( MAX_FRAMES_IN_FLIGHT );
+	RenderFinishedSemaphores.resize( MAX_FRAMES_IN_FLIGHT );
+	InFlightFences.resize( MAX_FRAMES_IN_FLIGHT );
+	ImagesInFlight.resize( SwapChainImages.size(), VK_NULL_HANDLE );
+
+	VkSemaphoreCreateInfo semaphoreInfo{};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	VkFenceCreateInfo fenceInfo{};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	for ( size_t i = 0u; i < MAX_FRAMES_IN_FLIGHT; i++ )
+	{
+		if ( vkCreateSemaphore( Device, &semaphoreInfo, nullptr, &ImageAvailableSemaphores[i] ) != VK_SUCCESS )
+		{
+			throw std::runtime_error( "ERROR::Application::CreateSyncObjects: Failed to create ImageAvailableSemaphore!" );
+		}
+
+		if ( vkCreateSemaphore( Device, &semaphoreInfo, nullptr, &RenderFinishedSemaphores[i] ) != VK_SUCCESS )
+		{
+			throw std::runtime_error( "ERROR::Application::CreateSyncObjects: Failed to create RenderFinishedSemaphore!" );
+		}
+
+		if ( vkCreateFence( Device, &fenceInfo, nullptr, &InFlightFences[i] ) != VK_SUCCESS )
+		{
+			throw std::runtime_error( "ERROR::Application::CreateSyncObjects: Failed to create fence!" );
+		}
+	}
+}
+
+void Application::DrawFrame()
+{
+	vkWaitForFences( Device, 1, &InFlightFences[CurrentFrame], VK_TRUE, UINT64_MAX );
+
+	uint32_t imageIndex;
+
+	vkAcquireNextImageKHR( Device, SwapChain, UINT64_MAX, ImageAvailableSemaphores[CurrentFrame], VK_NULL_HANDLE, &imageIndex );
+
+// Chack if a previous frame is using this image ( i. e. there is its fence to wait on ):
+
+	if ( ImagesInFlight[imageIndex] != VK_NULL_HANDLE )
+	{
+		vkWaitForFences( Device, 1, &ImagesInFlight[imageIndex], VK_TRUE, UINT64_MAX );
+	}
+
+// Mark the image as now being in use bu this frame:
+
+	ImagesInFlight[imageIndex] = InFlightFences[CurrentFrame];
+
+	VkSemaphore waitSemaphores[] = { ImageAvailableSemaphores[CurrentFrame] };
+
+	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+	VkSemaphore signalSemaphores[] = { RenderFinishedSemaphores[CurrentFrame] };
+
+	VkSubmitInfo submitInfo{};
+
+	submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.waitSemaphoreCount   = 1;
+	submitInfo.pWaitSemaphores      = waitSemaphores;
+	submitInfo.pWaitDstStageMask    = waitStages;
+	submitInfo.commandBufferCount   = 1;
+	submitInfo.pCommandBuffers      = &CommandBuffers[imageIndex];
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores    = signalSemaphores;
+
+	vkResetFences(Device, 1, &InFlightFences[CurrentFrame]);
+
+	if ( vkQueueSubmit( GraphicsQueue, 1, &submitInfo, InFlightFences[CurrentFrame] ) != VK_SUCCESS )
+	{
+		throw std::runtime_error( "ERROR::Application::DrawFrame: Failed to submit draw command buffer!" );
+	}
+
+	VkSwapchainKHR swapChains[] = { SwapChain };
+
+	VkPresentInfoKHR presentInfo{};
+
+	presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores    = signalSemaphores;
+	presentInfo.swapchainCount     = 1;
+	presentInfo.pSwapchains        = swapChains;
+	presentInfo.pImageIndices      = &imageIndex;
+	presentInfo.pResults           = nullptr; // Optional.
+
+	vkQueuePresentKHR( PresentQueue, &presentInfo );
+
+	vkQueueWaitIdle( PresentQueue );
+
+	CurrentFrame = ( CurrentFrame + 1u ) % MAX_FRAMES_IN_FLIGHT ;
 }
 
 VkShaderModule Application::CreateShaderModule( const std::vector<char>& code )
@@ -882,16 +1048,25 @@ void Application::MainLoop()
 
 		glfwPollEvents();
 
-		// Do stuff...
+		this->DrawFrame();
 
 	// Limit the amount of frames per second nearly to 60:
 
 		std::this_thread::sleep_for( std::chrono::milliseconds( 15 ) );
 	}
+
+	vkDeviceWaitIdle( Device );
 }
 
 void Application::Cleanup()
 {
+	for ( size_t i = 0u; i < MAX_FRAMES_IN_FLIGHT; i++ )
+	{
+		vkDestroySemaphore( Device, RenderFinishedSemaphores[i], nullptr );
+		vkDestroySemaphore( Device, ImageAvailableSemaphores[i], nullptr );
+		vkDestroyFence( Device, InFlightFences[i], nullptr );
+	}
+
 	vkDestroyCommandPool( Device, CommandPool, nullptr );
 
 	for ( auto framebuffer : SwapChainFramebuffers )
@@ -926,6 +1101,28 @@ void Application::Cleanup()
 	glfwDestroyWindow( Window );
 
 	glfwTerminate();
+}
+
+void Application::CleanupSwapChain()
+{
+
+}
+
+void Application::RecreateSwaoChain()
+{
+	vkDeviceWaitIdle( Device );
+
+	this->CreateSwapChain();
+
+	this->CreateImageViews();
+
+	this->CreateRenderPass();
+
+	this->CreateGraphicsPipeline();
+
+	this->CreateFrameBuffers();
+
+	this->CreateCommandBuffers();
 }
 
 bool Application::CheckValidationLayerSupport()
