@@ -1,7 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#if _MSC_VER
+#if _MSC_VER && !__INTEL_COMPILER
 
 #define LOG_TRACE( message ) Logger::Trace( __FUNCTION__, message )
 
