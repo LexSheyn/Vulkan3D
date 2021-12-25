@@ -11,6 +11,7 @@
 #include "../Timer/ScopeTimer32.h"
 #include "../Timer/Timer32.h"
 #include "../Timer/TimeStep32.h"
+#include "../Logger/Logger.h"
 
 const std::vector<const char*> ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
 

@@ -71,6 +71,7 @@
       <AdditionalDependencies>glfw3dll.lib;vulkan-1.lib;shadercd.lib;shaderc_combinedd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -95,11 +96,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(VK_SDK_PATH)\Lib;$(SolutionDir)Linking\GLFW\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3dll.lib;vulkan-1.lib;shaderc.lib;shaderc_combined.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Application\Application.cpp" />
     <ClCompile Include="src\EntryPoint\Main.cpp" />
+    <ClCompile Include="src\Logger\Logger.cpp" />
     <ClCompile Include="src\Pointers\SharedPointer.cpp" />
     <ClCompile Include="src\Pointers\UniquePointer.cpp" />
     <ClCompile Include="src\PrecompiledHeaders\stdafx.cpp">
@@ -113,9 +116,11 @@
     <ClCompile Include="src\Timer\ScopeTimer32.cpp" />
     <ClCompile Include="src\Timer\Timer32.cpp" />
     <ClCompile Include="src\Timer\TimeStep32.cpp" />
+    <ClCompile Include="src\Window\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Application\Application.h" />
+    <ClInclude Include="src\Logger\Logger.h" />
     <ClInclude Include="src\Pointers\SharedPointer.h" />
     <ClInclude Include="src\Pointers\UniquePointer.h" />
     <ClInclude Include="src\PrecompiledHeaders\stdafx.h" />
@@ -124,6 +129,7 @@
     <ClInclude Include="src\Timer\ScopeTimer32.h" />
     <ClInclude Include="src\Timer\Timer32.h" />
     <ClInclude Include="src\Timer\TimeStep32.h" />
+    <ClInclude Include="src\Window\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="vk_layer_settings.txt" />

@@ -17,6 +17,8 @@ namespace t3d
 
 		VkResult InitVulkan( GLFWwindow* window );
 
+	private:
+
 	// Private Functions:
 
 		bool8 CheckValidationLayerSupport();
@@ -40,8 +42,6 @@ namespace t3d
 		static VkResult CreateDebugUtilsMessengerEXT( VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger );
 
 		static void DestroyDebugUtilsMessengerEXT( VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator );
-
-	private:
 
 	// Variables:
 

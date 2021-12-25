@@ -996,6 +996,10 @@ void Application::CreateInstance()
 	}
 
 	std::cout << std::endl;
+
+	t3d::LOG_TRACE( "Instance created successfully!" );
+	t3d::LOG_WARNING( "Test warning, nothing important here." );
+	t3d::LOG_ERROR( "Test error, probably can be important!" );
 }
 
 void Application::PopulateDebugMessengerCreateInfo( VkDebugUtilsMessengerCreateInfoEXT& debugMessengerCreateInfo )

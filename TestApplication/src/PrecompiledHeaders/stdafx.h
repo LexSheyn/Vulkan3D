@@ -32,6 +32,9 @@ typedef double             float64;
 
 // ShaderC:
 #pragma warning( disable : 26439 ) // Warning C26439: This kind of function may not throw.Declare it 'noexcept' (f.6).
+
+// Warning LNK4099 is ignored!!! For more details look at: Properties->Linker->Command Line
+
 #include <shaderc/shaderc.hpp>
 
 #pragma warning( pop ) // Vulkan SDK - End
@@ -53,5 +56,6 @@ typedef double             float64;
 #include <cstdint>
 #include <algorithm>
 #include <memory>
+#include <functional>
 
 #endif // STDAFX_H
