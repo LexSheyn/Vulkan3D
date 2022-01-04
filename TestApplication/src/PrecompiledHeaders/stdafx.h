@@ -30,6 +30,9 @@ typedef double             float64;
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
+// GL Math
+#include <glm/glm.hpp>
+
 // ShaderC:
 #pragma warning( disable : 26439 ) // Warning C26439: This kind of function may not throw.Declare it 'noexcept' (f.6).
 

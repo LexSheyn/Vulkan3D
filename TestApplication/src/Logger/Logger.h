@@ -1,24 +1,6 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#if _MSC_VER && !__INTEL_COMPILER
-
-	#define LOG_TRACE( message ) Logger::Trace( __FUNCTION__, message )
-
-	#define LOG_WARNING( message ) Logger::Warning( __FUNCTION__, message )
-
-	#define LOG_ERROR( message ) Logger::Error( __FUNCTION__, message )
-
-#else
-
-	#define LOG_TRACE( message ) Logger::Trace( "", message )
-
-	#define LOG_WARNING( message ) Logger::Warning( "", message )
-
-	#define LOG_ERROR( message ) Logger::Error( "", message )
-
-#endif
-
 namespace t3d
 {
 	class Logger
@@ -83,5 +65,23 @@ namespace t3d
 		static Level m_LogLevel;
 	};
 }
+
+#if _MSC_VER && !__INTEL_COMPILER
+
+	#define LOG_TRACE( message ) Logger::Trace( __FUNCTION__, message )
+
+	#define LOG_WARNING( message ) Logger::Warning( __FUNCTION__, message )
+
+	#define LOG_ERROR( message ) Logger::Error( __FUNCTION__, message )
+
+#else
+
+	#define LOG_TRACE( message ) Logger::Trace( "", message )
+
+	#define LOG_WARNING( message ) Logger::Warning( "", message )
+
+	#define LOG_ERROR( message ) Logger::Error( "", message )
+
+#endif
 
 #endif // LOGGER_H

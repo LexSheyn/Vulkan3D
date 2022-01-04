@@ -51,6 +51,12 @@ struct SwapChainSupportDetails
 	std::vector<VkPresentModeKHR> PresentModes;
 };
 
+struct Vertex
+{
+	glm::vec2 position;
+	glm::vec3 color;
+};
+
 class Application
 {
 public:
@@ -64,6 +70,8 @@ private:
 // Private Functions:
 
 	void InitWindow();
+
+	static void FrameBufferResizeCallback(GLFWwindow* window, int width, int height);
 
 	void InitVulkan();
 
@@ -117,11 +125,11 @@ private:
 
 	void MainLoop();
 
-	void Cleanup();
-
 	void CleanupSwapChain();
 
-	void RecreateSwaoChain();
+	void Cleanup();
+
+	void RecreateSwapChain();
 
 	bool CheckValidationLayerSupport();
 
@@ -210,8 +218,12 @@ private:
 
 	size_t CurrentFrame = 0u;
 
+	bool FrameBufferResized = false;
+
+
+
 	// TEST
-	t3d::ShaderManager n_ShaderManager;
+	t3d::ShaderManager m_ShaderManager;
 
 	float32 m_LastFrameTime = 0.0f;
 };

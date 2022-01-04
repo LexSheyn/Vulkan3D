@@ -25,9 +25,19 @@ void Application::InitWindow()
 	glfwInit();
 
 	glfwWindowHint( GLFW_CLIENT_API, GLFW_NO_API );
-	glfwWindowHint( GLFW_RESIZABLE , GLFW_FALSE  );
 
 	Window = glfwCreateWindow( WIDTH, HEIGHT, "Vulkan3D", nullptr, nullptr );
+
+	glfwSetWindowUserPointer(Window, this);
+
+	glfwSetFramebufferSizeCallback(Window, FrameBufferResizeCallback);
+}
+
+void Application::FrameBufferResizeCallback(GLFWwindow* window, int width, int height)
+{
+	Application* application = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+
+	application->FrameBufferResized = true;
 }
 
 void Application::InitVulkan()
@@ -93,27 +103,27 @@ void Application::PickPhisicalDevice()
 		throw std::runtime_error( "ERROR::Application::PickPhysicalDevice: Failed to find a suitable GPU!" );
 	}
 
-//// Use an ordered map to automatically sort candidates by increasing score:
-//
-//	std::multimap<int32_t, VkPhysicalDevice> candidates;
-//
-//	for ( const auto& device : devices )
-//	{
-//		int32_t score = this->RateDeviceSuitability( device );
-//
-//		candidates.insert( std::make_pair( score, device ) );
-//	}
-//
-//// Check is the best candidate is suitable at all:
-//
-//	if ( candidates.rbegin()->first > 0 )
-//	{
-//		PhysicalDevice = candidates.rbegin()->second;
-//	}
-//	else
-//	{
-//		throw std::runtime_error( "ERROR::Application::PickPhysicalDevice: Failed to find a suitable GPU!" );
-//	}
+// Use an ordered map to automatically sort candidates by increasing score:
+
+	std::multimap<int32_t, VkPhysicalDevice> candidates;
+
+	for ( const auto& device : devices )
+	{
+		int32_t score = this->RateDeviceSuitability( device );
+
+		candidates.insert( std::make_pair( score, device ) );
+	}
+
+// Check is the best candidate is suitable at all:
+
+	if ( candidates.rbegin()->first > 0 )
+	{
+		PhysicalDevice = candidates.rbegin()->second;
+	}
+	else
+	{
+		throw std::runtime_error( "ERROR::Application::PickPhysicalDevice: Failed to find a suitable GPU!" );
+	}
 }
 
 void Application::CreateLogicalDevice()
@@ -217,7 +227,6 @@ void Application::CreateSwapChain()
 	swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	swapChainCreateInfo.presentMode    = presentMode;
 	swapChainCreateInfo.clipped        = VK_TRUE;
-	swapChainCreateInfo.oldSwapchain   = VK_NULL_HANDLE;
 
 	if ( vkCreateSwapchainKHR( Device, &swapChainCreateInfo, nullptr, &SwapChain ) != VK_SUCCESS )
 	{
@@ -318,8 +327,8 @@ void Application::CreateRenderPass()
 void Application::CreateGraphicsPipeline()
 {
 // ------------------------------ TEST SETTINGS ------------------------------
-	n_ShaderManager.SetDirectoryGLSL( "D:/VULKAN_3D_SHADERS/GLSL/" );
-	n_ShaderManager.SetDirectorySPV(  "D:/VULKAN_3D_SHADERS/SPV/"  );
+	m_ShaderManager.SetDirectoryGLSL( "D:/VULKAN_3D_SHADERS/GLSL/" );
+	m_ShaderManager.SetDirectorySPV(  "D:/VULKAN_3D_SHADERS/SPV/"  );
 // ---------------------------------------------------------------------------
 
 //	std::string shaderCode = m_ShaderCompiler.LoadGLSL( "shader.frag" );
@@ -334,8 +343,8 @@ void Application::CreateGraphicsPipeline()
 //
 //	std::cout << TEST << std::endl;
 
-	std::vector<char> vertexShaderCode   = n_ShaderManager.LoadSPV( "vert" );
-	std::vector<char> fragmentShaderCode = n_ShaderManager.LoadSPV( "frag" );
+	std::vector<char> vertexShaderCode   = m_ShaderManager.LoadSPV( "vert" );
+	std::vector<char> fragmentShaderCode = m_ShaderManager.LoadSPV( "frag" );
 
 //	std::cout << "Vertex Shader size: "   << vertexShaderCode.size()   * sizeof(char) << std::endl;
 //	std::cout << "Fragment Shader size: " << fragmentShaderCode.size() * sizeof(char) << std::endl;
@@ -448,7 +457,7 @@ void Application::CreateGraphicsPipeline()
 	colorBlendingInfo.blendConstants[2] = 0.0f;                  // Optional.
 	colorBlendingInfo.blendConstants[3] = 0.0f;                  // Optional.
 
-	VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_LINE_WIDTH };
+	VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 
 	VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
 
@@ -637,7 +646,18 @@ void Application::DrawFrame()
 
 	uint32_t imageIndex;
 
-	vkAcquireNextImageKHR( Device, SwapChain, UINT64_MAX, ImageAvailableSemaphores[CurrentFrame], VK_NULL_HANDLE, &imageIndex );
+	VkResult result = vkAcquireNextImageKHR( Device, SwapChain, UINT64_MAX, ImageAvailableSemaphores[CurrentFrame], VK_NULL_HANDLE, &imageIndex );
+
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		this->RecreateSwapChain();
+
+		return;
+	}
+	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+	{
+		throw std::runtime_error("Failed to acquire swap chain image!");
+	}
 
 // Chack if a previous frame is using this image ( i. e. there is its fence to wait on ):
 
@@ -686,9 +706,18 @@ void Application::DrawFrame()
 	presentInfo.pImageIndices      = &imageIndex;
 	presentInfo.pResults           = nullptr; // Optional.
 
-	vkQueuePresentKHR( PresentQueue, &presentInfo );
+	result = vkQueuePresentKHR( PresentQueue, &presentInfo );
 
-	vkQueueWaitIdle( PresentQueue );
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || FrameBufferResized)
+	{
+		FrameBufferResized = false;
+
+		this->RecreateSwapChain();
+	}
+	else if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to present swap chain image!");
+	}
 
 	CurrentFrame = ( CurrentFrame + 1u ) % MAX_FRAMES_IN_FLIGHT ;
 }
@@ -998,8 +1027,8 @@ void Application::CreateInstance()
 	std::cout << std::endl;
 
 	t3d::LOG_TRACE( "Instance created successfully!" );
-	t3d::LOG_WARNING( "Test warning, nothing important here." );
-	t3d::LOG_ERROR( "Test error, probably can be important!" );
+	t3d::LOG_WARNING( "Test warning! Description example here!" );
+	t3d::LOG_ERROR( "Test error! Description example here!" );
 }
 
 void Application::PopulateDebugMessengerCreateInfo( VkDebugUtilsMessengerCreateInfoEXT& debugMessengerCreateInfo )
@@ -1062,8 +1091,31 @@ void Application::MainLoop()
 	vkDeviceWaitIdle( Device );
 }
 
+void Application::CleanupSwapChain()
+{
+	for (size_t i = 0u; i < SwapChainFramebuffers.size(); i++)
+	{
+		vkDestroyFramebuffer(Device, SwapChainFramebuffers[i], nullptr);
+	}
+
+	vkFreeCommandBuffers(Device, CommandPool, static_cast<uint32_t>(CommandBuffers.size()), CommandBuffers.data());
+
+	vkDestroyPipeline(Device, GraphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(Device, PipelineLayout, nullptr);
+	vkDestroyRenderPass(Device, RenderPass, nullptr);
+
+	for (size_t i = 0u; i < SwapChainImageViews.size(); i++)
+	{
+		vkDestroyImageView(Device, SwapChainImageViews[i], nullptr);
+	}
+
+	vkDestroySwapchainKHR(Device, SwapChain, nullptr);
+}
+
 void Application::Cleanup()
 {
+	this->CleanupSwapChain();
+
 	for ( size_t i = 0u; i < MAX_FRAMES_IN_FLIGHT; i++ )
 	{
 		vkDestroySemaphore( Device, RenderFinishedSemaphores[i], nullptr );
@@ -1073,48 +1125,39 @@ void Application::Cleanup()
 
 	vkDestroyCommandPool( Device, CommandPool, nullptr );
 
-	for ( auto framebuffer : SwapChainFramebuffers )
+	vkDestroyDevice(Device, nullptr);
+
+	if (EnableValidationLayers)
 	{
-		vkDestroyFramebuffer( Device, framebuffer, nullptr );
+		Application::DestroyDebugUtilsMessengerEXT(Instance, DebugMessenger, nullptr);
 	}
 
-	vkDestroyPipeline( Device, GraphicsPipeline, nullptr );
+	vkDestroySurfaceKHR(Instance, Surface, nullptr);
 
-	vkDestroyPipelineLayout( Device, PipelineLayout, nullptr );
+	vkDestroyInstance(Instance, nullptr);
 
-	vkDestroyRenderPass( Device, RenderPass, nullptr );
-
-	for ( auto imageView : SwapChainImageViews )
-	{
-		vkDestroyImageView( Device, imageView, nullptr );
-	}
-
-	vkDestroySwapchainKHR( Device, SwapChain, nullptr );
-
-	vkDestroyDevice( Device, nullptr );
-
-	if ( EnableValidationLayers )
-	{
-		Application::DestroyDebugUtilsMessengerEXT( Instance, DebugMessenger, nullptr );
-	}
-
-	vkDestroySurfaceKHR( Instance, Surface, nullptr );
-
-	vkDestroyInstance( Instance, nullptr );
-
-	glfwDestroyWindow( Window );
+	glfwDestroyWindow(Window);
 
 	glfwTerminate();
 }
 
-void Application::CleanupSwapChain()
+void Application::RecreateSwapChain()
 {
+	int width  = 0;
+	int height = 0;
 
-}
+	glfwGetFramebufferSize(Window, &width, &height);
 
-void Application::RecreateSwaoChain()
-{
+	while (width == 0 || height == 0)
+	{
+		glfwGetFramebufferSize(Window, &width, &height);
+		glfwWaitEvents();
+	}
+
 	vkDeviceWaitIdle( Device );
+
+	this->CleanupSwapChain();
+
 
 	this->CreateSwapChain();
 
@@ -1127,6 +1170,9 @@ void Application::RecreateSwaoChain()
 	this->CreateFrameBuffers();
 
 	this->CreateCommandBuffers();
+
+
+	ImagesInFlight.resize(SwapChainImages.size(), VK_NULL_HANDLE);
 }
 
 bool Application::CheckValidationLayerSupport()
