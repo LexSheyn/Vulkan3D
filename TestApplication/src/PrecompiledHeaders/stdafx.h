@@ -60,5 +60,6 @@ typedef double             float64;
 #include <algorithm>
 #include <memory>
 #include <functional>
+#include <array>
 
 #endif // STDAFX_H

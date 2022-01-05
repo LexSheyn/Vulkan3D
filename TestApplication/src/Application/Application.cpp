@@ -64,6 +64,8 @@ void Application::InitVulkan()
 
 	this->CreateCommandPool();
 
+	this->CreateVertexBuffer();
+
 	this->CreateCommandBuffers();
 
 	this->CreateSyncObjects();
@@ -372,13 +374,16 @@ void Application::CreateGraphicsPipeline()
 
 	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderStageInfo, fragmentShaderStageInfo };
 
+	VkVertexInputBindingDescription bindingDescription = Vertex::GetBindingDescription();
+	std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = Vertex::GetAttributeDescriptions();
+
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 
 	vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexBindingDescriptionCount   = 0;
-	vertexInputInfo.pVertexBindingDescriptions      = nullptr; // Optional.
-	vertexInputInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputInfo.pVertexAttributeDescriptions    = nullptr; // Optional.
+	vertexInputInfo.vertexBindingDescriptionCount   = 1;
+	vertexInputInfo.pVertexBindingDescriptions      = &bindingDescription;
+	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+	vertexInputInfo.pVertexAttributeDescriptions    = attributeDescriptions.data();
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
 
@@ -386,27 +391,27 @@ void Application::CreateGraphicsPipeline()
 	inputAssemblyInfo.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkViewport viewport{};
+//	VkViewport viewport{};
 
-	viewport.x        = 0.0f;
-	viewport.y        = 0.0f;
-	viewport.width    = static_cast<float>( SwapChainExtent.width );
-	viewport.height   = static_cast<float>( SwapChainExtent.height );
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
+	Viewport.x        = 0.0f;
+	Viewport.y        = 0.0f;
+	Viewport.width    = static_cast<float>( SwapChainExtent.width );
+	Viewport.height   = static_cast<float>( SwapChainExtent.height );
+	Viewport.minDepth = 0.0f;
+	Viewport.maxDepth = 1.0f;
 
-	VkRect2D scissor{};
+//	VkRect2D scissor{};
 
-	scissor.offset = { 0, 0 };
-	scissor.extent = SwapChainExtent;
+	Scissor.offset = { 0, 0 };
+	Scissor.extent = SwapChainExtent;
 
 	VkPipelineViewportStateCreateInfo viewportStateInfo{};
 
 	viewportStateInfo.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	viewportStateInfo.viewportCount = 1;
-	viewportStateInfo.pViewports    = &viewport;
+	viewportStateInfo.pViewports    = &Viewport;
 	viewportStateInfo.scissorCount  = 1;
-	viewportStateInfo.pScissors     = &scissor;
+	viewportStateInfo.pScissors     = &Scissor;
 
 	VkPipelineRasterizationStateCreateInfo rasterizationInfo{};
 
@@ -418,32 +423,19 @@ void Application::CreateGraphicsPipeline()
 	rasterizationInfo.cullMode                = VK_CULL_MODE_BACK_BIT;
 	rasterizationInfo.frontFace               = VK_FRONT_FACE_CLOCKWISE;
 	rasterizationInfo.depthBiasEnable         = VK_FALSE;
-	rasterizationInfo.depthBiasConstantFactor = 0.0f;                    // Optional.
-	rasterizationInfo.depthBiasClamp          = 0.0f;                    // Optional.
-	rasterizationInfo.depthBiasSlopeFactor    = 0.0f;                    // Optional.
 
 	VkPipelineMultisampleStateCreateInfo multisampleInfo{};
 
 	multisampleInfo.sType                 = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampleInfo.sampleShadingEnable   = VK_FALSE;
 	multisampleInfo.rasterizationSamples  = VK_SAMPLE_COUNT_1_BIT;
-	multisampleInfo.minSampleShading      = 1.0f;                  // Optional.
-	multisampleInfo.pSampleMask           = nullptr;               // Optional.
-	multisampleInfo.alphaToCoverageEnable = VK_FALSE;              // Optional.
-	multisampleInfo.alphaToOneEnable      = VK_FALSE;              // Optional.
 
 //	VkPipelineDepthStencilStateCreateInfo
 
 	VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 
 	colorBlendAttachment.colorWriteMask      = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorBlendAttachment.blendEnable         = VK_TRUE;
-	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;           // Optional.
-	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA; // Optional.
-	colorBlendAttachment.colorBlendOp        = VK_BLEND_OP_ADD;                     // Optional.
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;                 // Optional.
-	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;                // Optional.
-	colorBlendAttachment.alphaBlendOp        = VK_BLEND_OP_ADD;                     // Optional.
+	colorBlendAttachment.blendEnable         = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorBlendingInfo{};
 
@@ -457,21 +449,21 @@ void Application::CreateGraphicsPipeline()
 	colorBlendingInfo.blendConstants[2] = 0.0f;                  // Optional.
 	colorBlendingInfo.blendConstants[3] = 0.0f;                  // Optional.
 
-	VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+	VkDynamicState dynamicStates[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
-	VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
+	VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo{};
 
-	dynamicStateInfo.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicStateInfo.dynamicStateCount = 2;
-	dynamicStateInfo.pDynamicStates    = dynamicStates;
+	dynamicStateCreateInfo.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamicStateCreateInfo.pNext             = nullptr;
+	dynamicStateCreateInfo.flags             = 0;
+	dynamicStateCreateInfo.dynamicStateCount = 2;
+	dynamicStateCreateInfo.pDynamicStates    = dynamicStates;
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 
 	pipelineLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount         = 0;       // Optional.
-	pipelineLayoutInfo.pSetLayouts            = nullptr; // Optional.
 	pipelineLayoutInfo.pushConstantRangeCount = 0;       // Optional.
-	pipelineLayoutInfo.pPushConstantRanges    = nullptr; // Optional.
 	
 	if ( vkCreatePipelineLayout( Device, &pipelineLayoutInfo, nullptr, &PipelineLayout ) != VK_SUCCESS )
 	{
@@ -490,14 +482,12 @@ void Application::CreateGraphicsPipeline()
 	pipelineInfo.pViewportState      = &viewportStateInfo;
 	pipelineInfo.pRasterizationState = &rasterizationInfo;
 	pipelineInfo.pMultisampleState   = &multisampleInfo;
-	pipelineInfo.pDepthStencilState  = nullptr;            // Optional.
 	pipelineInfo.pColorBlendState    = &colorBlendingInfo;
-	pipelineInfo.pDynamicState       = nullptr;            // Optional.
+	pipelineInfo.pDynamicState       = &dynamicStateCreateInfo;
 	pipelineInfo.layout              = PipelineLayout;
 	pipelineInfo.renderPass          = RenderPass;
 	pipelineInfo.subpass             = 0;
 	pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE;     // Optional.
-	pipelineInfo.basePipelineIndex   = -1;                 // Optional.
 
 	if ( vkCreateGraphicsPipelines( Device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &GraphicsPipeline ) != VK_SUCCESS )
 	{
@@ -520,13 +510,13 @@ void Application::CreateFrameBuffers()
 
 		VkFramebufferCreateInfo framebufferInfo{};
 
-		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = RenderPass;
+		framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass      = RenderPass;
 		framebufferInfo.attachmentCount = 1;
-		framebufferInfo.pAttachments = attachments;
-		framebufferInfo.width = SwapChainExtent.width;
-		framebufferInfo.height = SwapChainExtent.height;
-		framebufferInfo.layers = 1;
+		framebufferInfo.pAttachments    = attachments;
+		framebufferInfo.width           = SwapChainExtent.width;
+		framebufferInfo.height          = SwapChainExtent.height;
+		framebufferInfo.layers          = 1;
 
 		if ( vkCreateFramebuffer( Device, &framebufferInfo, nullptr, &SwapChainFramebuffers[i] ) != VK_SUCCESS )
 		{
@@ -541,14 +531,65 @@ void Application::CreateCommandPool()
 
 	VkCommandPoolCreateInfo commandPoolInfo{};
 
-	commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	commandPoolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	commandPoolInfo.queueFamilyIndex = queueFamilyIndices.GraphicsFamily.value();
-	commandPoolInfo.flags = 0; // Optional.
 
 	if ( vkCreateCommandPool( Device, &commandPoolInfo, nullptr, &CommandPool ) != VK_SUCCESS )
 	{
 		throw std::runtime_error( "ERROR::Application::CreateCommandPool: Failed to create command pool!" );
 	}
+}
+
+void Application::CreateVertexBuffer()
+{
+	VkBufferCreateInfo bufferInfo{};
+	bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size        = sizeof(Vertices[0]) * Vertices.size();
+	bufferInfo.usage       = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateBuffer(Device, &bufferInfo, nullptr, &VertexBuffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error("ERROR::Application::CreateVertexBuffer: Failed to create vertex buffer!");
+	}
+
+	VkMemoryRequirements memoryRequirements;
+	vkGetBufferMemoryRequirements(Device, VertexBuffer, &memoryRequirements);
+
+	VkMemoryAllocateInfo allocateInfo{};
+	allocateInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocateInfo.allocationSize  = memoryRequirements.size;
+	allocateInfo.memoryTypeIndex = this->FindMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	if (vkAllocateMemory(Device, &allocateInfo, nullptr, &VertexBufferMemory) != VK_SUCCESS)
+	{
+		throw std::runtime_error("ERROR::Application::CreateVertexBuffer: Failed to allocate vertex buffer memory!");
+	}
+
+	vkBindBufferMemory(Device, VertexBuffer, VertexBufferMemory, 0);
+
+	void* data;
+	vkMapMemory(Device, VertexBufferMemory, 0, bufferInfo.size, 0, &data);
+//	std::memcpy(data, Vertices.data(), static_cast<size_t>(bufferInfo.size));
+	memcpy_s(data, static_cast<size_t>(bufferInfo.size), Vertices.data(), static_cast<size_t>(bufferInfo.size));
+	vkUnmapMemory(Device, VertexBufferMemory);
+}
+
+uint32_t Application::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+	VkPhysicalDeviceMemoryProperties memoryProperties;
+
+	vkGetPhysicalDeviceMemoryProperties(PhysicalDevice, &memoryProperties);
+
+	for (uint32_t i = 0u; i < memoryProperties.memoryTypeCount; i++)
+	{
+		if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+		{
+			return i;
+		}
+	}
+
+	throw std::runtime_error("ERROR::Application::CreateVertexBuffer: Failed to find suitable memory type!");
 }
 
 void Application::CreateCommandBuffers()
@@ -571,9 +612,7 @@ void Application::CreateCommandBuffers()
 	{
 		VkCommandBufferBeginInfo commandBufferBeginInfo{};
 
-		commandBufferBeginInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		commandBufferBeginInfo.flags            = 0;       // Optional.
-		commandBufferBeginInfo.pInheritanceInfo = nullptr; // Optional.
+		commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
 		if ( vkBeginCommandBuffer( CommandBuffers[i], &commandBufferBeginInfo ) != VK_SUCCESS )
 		{
@@ -596,7 +635,17 @@ void Application::CreateCommandBuffers()
 		
 		vkCmdBindPipeline( CommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, GraphicsPipeline );
 
-		vkCmdDraw( CommandBuffers[i], 3, 1, 0, 0 );
+		VkBuffer vertexBuffers[] = {VertexBuffer};
+
+		VkDeviceSize offsets[] = {0};
+
+		vkCmdBindVertexBuffers(CommandBuffers[i], 0, 1, vertexBuffers, offsets);
+
+		vkCmdSetViewport(CommandBuffers[i], 0, 1, &Viewport);
+
+		vkCmdSetScissor(CommandBuffers[i], 0, 1, &Scissor);
+
+		vkCmdDraw( CommandBuffers[i], static_cast<uint32_t>(Vertices.size()), 1, 0, 0 );
 
 		vkCmdEndRenderPass( CommandBuffers[i] );
 
@@ -704,7 +753,6 @@ void Application::DrawFrame()
 	presentInfo.swapchainCount     = 1;
 	presentInfo.pSwapchains        = swapChains;
 	presentInfo.pImageIndices      = &imageIndex;
-	presentInfo.pResults           = nullptr; // Optional.
 
 	result = vkQueuePresentKHR( PresentQueue, &presentInfo );
 
@@ -1115,6 +1163,9 @@ void Application::CleanupSwapChain()
 void Application::Cleanup()
 {
 	this->CleanupSwapChain();
+
+	vkDestroyBuffer(Device, VertexBuffer, nullptr);
+	vkFreeMemory(Device, VertexBufferMemory, nullptr);
 
 	for ( size_t i = 0u; i < MAX_FRAMES_IN_FLIGHT; i++ )
 	{
