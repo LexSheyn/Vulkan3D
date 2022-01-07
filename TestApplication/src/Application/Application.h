@@ -128,6 +128,10 @@ private:
 
 	void CreateVertexBuffer();
 
+	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+
+	void CopyBuffer(VkBuffer sourceBuffer, VkBuffer destinationBuffer, VkDeviceSize size);
+
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 	void CreateCommandBuffers();
@@ -210,9 +214,9 @@ private:
 
 	GLFWwindow* Window;
 
-	const uint32_t WIDTH  = 800u;
+	uint32_t WIDTH  = 800u;
 
-	const uint32_t HEIGHT = 600u;
+	uint32_t HEIGHT = 600u;
 
 	VkInstance Instance;
 
