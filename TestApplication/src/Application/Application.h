@@ -87,9 +87,15 @@ struct Vertex
 
 const std::vector<Vertex> Vertices =
 {
-	{{ -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}},
-	{{  0.0f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-	{{  0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}}
+	{{ -0.5f, -0.5f}, { 1.0f, 0.0f, 0.0f }},
+	{{  0.5f, -0.5f}, { 0.0f, 1.0f, 0.0f }},
+	{{  0.5f,  0.5f}, { 0.0f, 0.0f, 1.0f }},
+	{{ -0.5f,  0.5f}, { 1.0f, 1.0f, 1.0f }}
+};
+
+const std::vector<uint16_t> Indices =
+{
+	0, 1, 2, 2, 3, 0
 };
 
 class Application
@@ -127,6 +133,8 @@ private:
 	void CreateCommandPool();
 
 	void CreateVertexBuffer();
+
+	void CreateIndexBuffer();
 
 	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
@@ -251,6 +259,9 @@ private:
 
 	VkBuffer VertexBuffer;
 	VkDeviceMemory VertexBufferMemory;
+
+	VkBuffer IndexBuffer;
+	VkDeviceMemory IndexBufferMemory;
 
 	std::vector<VkCommandBuffer> CommandBuffers;
 

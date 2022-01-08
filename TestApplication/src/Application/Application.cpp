@@ -71,6 +71,8 @@ void Application::InitVulkan()
 
 	this->CreateVertexBuffer();
 
+	this->CreateIndexBuffer();
+
 	this->CreateCommandBuffers();
 
 	this->CreateSyncObjects();
@@ -570,6 +572,31 @@ void Application::CreateVertexBuffer()
 	vkFreeMemory(Device, stagingBufferMemory, nullptr);
 }
 
+void Application::CreateIndexBuffer()
+{
+	VkDeviceSize bufferSize = sizeof(Indices[0]) * Indices.size();
+
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+
+	this->CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+	void* data;
+
+	vkMapMemory(Device, stagingBufferMemory, 0, bufferSize, 0, &data);
+
+	memcpy_s(data, static_cast<size_t>(bufferSize), Indices.data(), static_cast<size_t>(bufferSize));
+
+	vkUnmapMemory(Device, stagingBufferMemory);
+
+	this->CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, IndexBuffer, IndexBufferMemory);
+
+	this->CopyBuffer(stagingBuffer, IndexBuffer, bufferSize);
+
+	vkDestroyBuffer(Device, stagingBuffer, nullptr);
+	vkFreeMemory(Device, stagingBufferMemory, nullptr);
+}
+
 void Application::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
 	VkBufferCreateInfo bufferInfo{};
@@ -710,11 +737,14 @@ void Application::CreateCommandBuffers()
 
 		vkCmdBindVertexBuffers(CommandBuffers[i], 0, 1, vertexBuffers, offsets);
 
+		vkCmdBindIndexBuffer(CommandBuffers[i], IndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
 		vkCmdSetViewport(CommandBuffers[i], 0, 1, &Viewport);
 
 		vkCmdSetScissor(CommandBuffers[i], 0, 1, &Scissor);
 
-		vkCmdDraw( CommandBuffers[i], static_cast<uint32_t>(Vertices.size()), 1, 0, 0 );
+	//	vkCmdDraw( CommandBuffers[i], static_cast<uint32_t>(Vertices.size()), 1, 0, 0 );
+		vkCmdDrawIndexed(CommandBuffers[i], static_cast<uint32_t>(Indices.size()), 1, 0, 0, 0);
 
 		vkCmdEndRenderPass( CommandBuffers[i] );
 
@@ -1235,6 +1265,9 @@ void Application::Cleanup()
 
 	vkDestroyBuffer(Device, VertexBuffer, nullptr);
 	vkFreeMemory(Device, VertexBufferMemory, nullptr);
+
+	vkDestroyBuffer(Device, IndexBuffer, nullptr);
+	vkFreeMemory(Device, IndexBufferMemory, nullptr);
 
 	for ( size_t i = 0u; i < MAX_FRAMES_IN_FLIGHT; i++ )
 	{
