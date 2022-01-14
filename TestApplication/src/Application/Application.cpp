@@ -63,6 +63,8 @@ void Application::InitVulkan()
 
 	this->CreateRenderPass();
 
+	this->CreateDescriptorSetLayout();
+
 	this->CreateGraphicsPipeline();
 
 	this->CreateFrameBuffers();
@@ -72,6 +74,12 @@ void Application::InitVulkan()
 	this->CreateVertexBuffer();
 
 	this->CreateIndexBuffer();
+
+	this->CreateUniformBuffers();
+
+	this->CreateDescriptorPool();
+
+	this->CreateDescriptorSets();
 
 	this->CreateCommandBuffers();
 
@@ -333,6 +341,28 @@ void Application::CreateRenderPass()
 	}
 }
 
+void Application::CreateDescriptorSetLayout()
+{
+	VkDescriptorSetLayoutBinding uniformBufferObjectLayoutBinding{};
+
+	uniformBufferObjectLayoutBinding.binding            = 0;
+	uniformBufferObjectLayoutBinding.descriptorType     = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uniformBufferObjectLayoutBinding.descriptorCount    = 1;
+	uniformBufferObjectLayoutBinding.pImmutableSamplers = nullptr; // Optional.
+	uniformBufferObjectLayoutBinding.stageFlags         = VK_SHADER_STAGE_VERTEX_BIT;
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo{};
+
+	layoutInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = 1;
+	layoutInfo.pBindings    = &uniformBufferObjectLayoutBinding;
+
+	if (vkCreateDescriptorSetLayout(Device, &layoutInfo, nullptr, &DescriptorSetLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error("ERROR::Application::CreateDescriptorSetLayout: Failed to create descriptor set layout!");
+	}
+}
+
 void Application::CreateGraphicsPipeline()
 {
 // ------------------------------ TEST SETTINGS ------------------------------
@@ -428,7 +458,7 @@ void Application::CreateGraphicsPipeline()
 	rasterizationInfo.polygonMode             = VK_POLYGON_MODE_FILL;
 	rasterizationInfo.lineWidth               = 1.0f;
 	rasterizationInfo.cullMode                = VK_CULL_MODE_BACK_BIT;
-	rasterizationInfo.frontFace               = VK_FRONT_FACE_CLOCKWISE;
+	rasterizationInfo.frontFace               = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizationInfo.depthBiasEnable         = VK_FALSE;
 
 	VkPipelineMultisampleStateCreateInfo multisampleInfo{};
@@ -468,9 +498,9 @@ void Application::CreateGraphicsPipeline()
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 
-	pipelineLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount         = 0;       // Optional.
-	pipelineLayoutInfo.pushConstantRangeCount = 0;       // Optional.
+	pipelineLayoutInfo.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = 1;
+	pipelineLayoutInfo.pSetLayouts    = &DescriptorSetLayout;
 	
 	if ( vkCreatePipelineLayout( Device, &pipelineLayoutInfo, nullptr, &PipelineLayout ) != VK_SUCCESS )
 	{
@@ -595,6 +625,19 @@ void Application::CreateIndexBuffer()
 
 	vkDestroyBuffer(Device, stagingBuffer, nullptr);
 	vkFreeMemory(Device, stagingBufferMemory, nullptr);
+}
+
+void Application::CreateUniformBuffers()
+{
+	VkDeviceSize bufferSize = sizeof(UniformBuffersMemory);
+
+	UniformBuffers.resize(SwapChainImages.size());
+	UniformBuffersMemory.resize(SwapChainImages.size());
+
+	for (size_t i = 0u; i < SwapChainImages.size(); i++)
+	{
+		this->CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, UniformBuffers[i], UniformBuffersMemory[i]);
+	}
 }
 
 void Application::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
@@ -735,15 +778,16 @@ void Application::CreateCommandBuffers()
 
 		VkDeviceSize offsets[] = {0};
 
-		vkCmdBindVertexBuffers(CommandBuffers[i], 0, 1, vertexBuffers, offsets);
-
-		vkCmdBindIndexBuffer(CommandBuffers[i], IndexBuffer, 0, VK_INDEX_TYPE_UINT16);
-
 		vkCmdSetViewport(CommandBuffers[i], 0, 1, &Viewport);
 
 		vkCmdSetScissor(CommandBuffers[i], 0, 1, &Scissor);
 
-	//	vkCmdDraw( CommandBuffers[i], static_cast<uint32_t>(Vertices.size()), 1, 0, 0 );
+		vkCmdBindVertexBuffers(CommandBuffers[i], 0, 1, vertexBuffers, offsets);
+
+		vkCmdBindIndexBuffer(CommandBuffers[i], IndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+		vkCmdBindDescriptorSets(CommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, PipelineLayout, 0, 1, &DescriptorSets[i], 0, nullptr);
+
 		vkCmdDrawIndexed(CommandBuffers[i], static_cast<uint32_t>(Indices.size()), 1, 0, 0, 0);
 
 		vkCmdEndRenderPass( CommandBuffers[i] );
@@ -788,6 +832,96 @@ void Application::CreateSyncObjects()
 	}
 }
 
+void Application::UpdateUniformBuffers(uint32_t currentImage)
+{
+	static std::chrono::steady_clock::time_point startTime = std::chrono::high_resolution_clock::now();
+
+	std::chrono::steady_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+
+	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+	UniformBufferObject uniformBufferObject{};
+
+	uniformBufferObject.model      = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+	uniformBufferObject.view       = glm::lookAt(glm::vec3(0.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+	uniformBufferObject.projection = glm::perspective(glm::radians(45.0f), static_cast<float>(SwapChainExtent.width) / static_cast<float>(SwapChainExtent.height), 0.1f, 10.0f);
+
+	uniformBufferObject.projection[1][1] *= -1; // Y-axis are flipped upside down in GLM by default, so flip it back for Vulkan by multiplying scale by -1.
+
+	void* data;
+
+	vkMapMemory(Device, UniformBuffersMemory[currentImage], 0, sizeof(uniformBufferObject), 0, &data);
+
+	memcpy_s(data, sizeof(uniformBufferObject), &uniformBufferObject, sizeof(uniformBufferObject));
+
+	vkUnmapMemory(Device, UniformBuffersMemory[currentImage]);
+}
+
+void Application::CreateDescriptorPool()
+{
+	VkDescriptorPoolSize poolSize{};
+
+	poolSize.type            = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSize.descriptorCount = static_cast<uint32_t>(SwapChainImages.size());
+
+	VkDescriptorPoolCreateInfo poolInfo{};
+
+	poolInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.poolSizeCount = 1;
+	poolInfo.pPoolSizes    = &poolSize;
+	poolInfo.maxSets       = static_cast<uint32_t>(SwapChainImages.size());
+
+	if (vkCreateDescriptorPool(Device, &poolInfo, nullptr, &DescriptorPool) != VK_SUCCESS)
+	{
+		throw std::runtime_error("ERROR::Application::CreateDescriptorPool: Failed to create descriptor pool!");
+	}
+}
+
+void Application::CreateDescriptorSets()
+{
+	std::vector<VkDescriptorSetLayout> layouts(SwapChainImages.size(), DescriptorSetLayout);
+
+	VkDescriptorSetAllocateInfo allocateInfo{};
+
+	allocateInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocateInfo.descriptorPool     = DescriptorPool;
+	allocateInfo.descriptorSetCount = static_cast<uint32_t>(SwapChainImages.size());
+	allocateInfo.pSetLayouts        = layouts.data();
+
+	DescriptorSets.resize(SwapChainImages.size());
+
+	if (vkAllocateDescriptorSets(Device, &allocateInfo, DescriptorSets.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error("ERROR::Application::CreateDescriptorSets: Failed to allocate descriptor sets!");
+	}
+
+	for (size_t i = 0u; i < SwapChainImages.size(); i++)
+	{
+		VkDescriptorBufferInfo bufferInfo{};
+
+		bufferInfo.buffer = UniformBuffers[i];
+		bufferInfo.offset = 0;
+	//	bufferInfo.range  = sizeof(UniformBufferObject);
+		bufferInfo.range  = VK_WHOLE_SIZE;
+
+		VkWriteDescriptorSet descriptorWrite{};
+
+		descriptorWrite.sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet           = DescriptorSets[i];
+		descriptorWrite.dstBinding       = 0;
+		descriptorWrite.dstArrayElement  = 0;
+		descriptorWrite.descriptorType   = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrite.descriptorCount  = 1;
+		descriptorWrite.pBufferInfo      = &bufferInfo;
+		descriptorWrite.pImageInfo       = nullptr; // Optional.
+		descriptorWrite.pTexelBufferView = nullptr; // Optional.
+
+		vkUpdateDescriptorSets(Device, 1, &descriptorWrite, 0, nullptr);
+	}
+}
+
 void Application::DrawFrame()
 {
 	vkWaitForFences( Device, 1, &InFlightFences[CurrentFrame], VK_TRUE, UINT64_MAX );
@@ -804,8 +938,10 @@ void Application::DrawFrame()
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 	{
-		throw std::runtime_error("Failed to acquire swap chain image!");
+		throw std::runtime_error("ERROR::Application::DrawFrane: Failed to acquire swap chain image!");
 	}
+
+	this->UpdateUniformBuffers(imageIndex);
 
 // Chack if a previous frame is using this image ( i. e. there is its fence to wait on ):
 
@@ -1140,7 +1276,7 @@ void Application::CreateInstance()
 	}
 	else
 	{
-		instanceCreateInfo.enabledLayerCount   = 0u;
+		instanceCreateInfo.enabledLayerCount   = 0;
 		instanceCreateInfo.pNext               = nullptr;
 	}
 
@@ -1172,10 +1308,6 @@ void Application::CreateInstance()
 	}
 
 	std::cout << std::endl;
-
-	t3d::LOG_TRACE( "Instance created successfully!" );
-	t3d::LOG_WARNING( "Test warning! Description example here!" );
-	t3d::LOG_ERROR( "Test error! Description example here!" );
 }
 
 void Application::PopulateDebugMessengerCreateInfo( VkDebugUtilsMessengerCreateInfoEXT& debugMessengerCreateInfo )
@@ -1220,12 +1352,6 @@ void Application::MainLoop()
 {
 	while ( !glfwWindowShouldClose( Window ) )
 	{
-		float32 time = static_cast<float32>(glfwGetTime());
-
-		t3d::TimeStep32  timeStep = time - m_LastFrameTime;
-
-		m_LastFrameTime = time;
-
 		glfwPollEvents();
 
 		this->DrawFrame();
@@ -1257,11 +1383,21 @@ void Application::CleanupSwapChain()
 	}
 
 	vkDestroySwapchainKHR(Device, SwapChain, nullptr);
+
+	for (size_t i = 0u; i < SwapChainImages.size(); i++)
+	{
+		vkDestroyBuffer(Device, UniformBuffers[i], nullptr);
+		vkFreeMemory(Device, UniformBuffersMemory[i], nullptr);
+	}
+
+	vkDestroyDescriptorPool(Device, DescriptorPool, nullptr);
 }
 
 void Application::Cleanup()
 {
 	this->CleanupSwapChain();
+
+	vkDestroyDescriptorSetLayout(Device, DescriptorSetLayout, nullptr);
 
 	vkDestroyBuffer(Device, VertexBuffer, nullptr);
 	vkFreeMemory(Device, VertexBufferMemory, nullptr);
@@ -1321,6 +1457,12 @@ void Application::RecreateSwapChain()
 	this->CreateGraphicsPipeline();
 
 	this->CreateFrameBuffers();
+
+	this->CreateUniformBuffers();
+
+	this->CreateDescriptorPool();
+
+	this->CreateDescriptorSets();
 
 	this->CreateCommandBuffers();
 

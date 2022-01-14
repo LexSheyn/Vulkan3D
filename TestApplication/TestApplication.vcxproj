@@ -111,6 +111,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="src\RenderSystem\FColor.cpp" />
+    <ClCompile Include="src\RenderSystem\FVertex.cpp" />
     <ClCompile Include="src\RenderSystem\RenderSystem.cpp" />
     <ClCompile Include="src\ShaderManager\ShaderManager.cpp" />
     <ClCompile Include="src\Timer\ScopeTimer32.cpp" />
@@ -124,6 +126,8 @@
     <ClInclude Include="src\Pointers\SharedPointer.h" />
     <ClInclude Include="src\Pointers\UniquePointer.h" />
     <ClInclude Include="src\PrecompiledHeaders\stdafx.h" />
+    <ClInclude Include="src\RenderSystem\FColor.h" />
+    <ClInclude Include="src\RenderSystem\FVertex.h" />
     <ClInclude Include="src\RenderSystem\RenderSystem.h" />
     <ClInclude Include="src\ShaderManager\ShaderManager.h" />
     <ClInclude Include="src\Timer\ScopeTimer32.h" />

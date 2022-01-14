@@ -8,11 +8,6 @@
 
 #include "../ShaderManager/ShaderManager.h"
 
-#include "../Timer/ScopeTimer32.h"
-#include "../Timer/Timer32.h"
-#include "../Timer/TimeStep32.h"
-#include "../Logger/Logger.h"
-
 const std::vector<const char*> ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
 
 const std::vector<const char*> DeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
@@ -85,6 +80,13 @@ struct Vertex
 	}
 };
 
+struct UniformBufferObject
+{
+	alignas(16) glm::mat4 model;
+	alignas(16) glm::mat4 view;
+	alignas(16) glm::mat4 projection;
+};
+
 const std::vector<Vertex> Vertices =
 {
 	{{ -0.5f, -0.5f}, { 1.0f, 0.0f, 0.0f }},
@@ -126,6 +128,8 @@ private:
 
 	void CreateRenderPass();
 
+	void CreateDescriptorSetLayout();
+
 	void CreateGraphicsPipeline();
 
 	void CreateFrameBuffers();
@@ -136,6 +140,8 @@ private:
 
 	void CreateIndexBuffer();
 
+	void CreateUniformBuffers();
+
 	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
 	void CopyBuffer(VkBuffer sourceBuffer, VkBuffer destinationBuffer, VkDeviceSize size);
@@ -145,6 +151,12 @@ private:
 	void CreateCommandBuffers();
 
 	void CreateSyncObjects();
+
+	void UpdateUniformBuffers(uint32_t currentImage);
+
+	void CreateDescriptorPool();
+
+	void CreateDescriptorSets();
 
 	void DrawFrame();
 
@@ -251,8 +263,8 @@ private:
 	std::vector<VkFramebuffer> SwapChainFramebuffers;
 
 	VkRenderPass RenderPass;
+	VkDescriptorSetLayout DescriptorSetLayout;
 	VkPipelineLayout PipelineLayout;
-
 	VkPipeline GraphicsPipeline;
 
 	VkCommandPool CommandPool;
@@ -262,6 +274,12 @@ private:
 
 	VkBuffer IndexBuffer;
 	VkDeviceMemory IndexBufferMemory;
+
+	std::vector<VkBuffer> UniformBuffers;
+	std::vector<VkDeviceMemory> UniformBuffersMemory;
+
+	VkDescriptorPool DescriptorPool;
+	std::vector<VkDescriptorSet> DescriptorSets;
 
 	std::vector<VkCommandBuffer> CommandBuffers;
 
@@ -285,8 +303,6 @@ private:
 	VkRect2D Scissor;
 
 	t3d::ShaderManager m_ShaderManager;
-
-	float32 m_LastFrameTime = 0.0f;
 };
 
 #pragma warning( pop ) // Vulkan SDK - End

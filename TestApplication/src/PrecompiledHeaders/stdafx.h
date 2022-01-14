@@ -30,8 +30,10 @@ typedef double             float64;
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
-// GL Math
+// GLM (Graphics Library Math)
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 // ShaderC:
 #pragma warning( disable : 26439 ) // Warning C26439: This kind of function may not throw.Declare it 'noexcept' (f.6).
@@ -61,5 +63,6 @@ typedef double             float64;
 #include <memory>
 #include <functional>
 #include <array>
+#include <chrono>
 
 #endif // STDAFX_H
