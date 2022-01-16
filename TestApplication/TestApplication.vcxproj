@@ -101,6 +101,30 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Application\Application.cpp" />
+    <ClCompile Include="src\Components\Health\FHealthSystem.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\Components\Interface\IComponent.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\Components\Health\CHealthComponent.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\Components\Health\ONumericalAttribute.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\Components\Interface\IObject.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\Components\Health\ORegen.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="src\EntryPoint\Main.cpp" />
     <ClCompile Include="src\Logger\Logger.cpp" />
     <ClCompile Include="src\Pointers\SharedPointer.cpp" />
@@ -122,6 +146,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Application\Application.h" />
+    <ClInclude Include="src\Components\Health\FHealthSystem.h" />
+    <ClInclude Include="src\Components\Interface\IComponent.h" />
+    <ClInclude Include="src\Components\Health\CHealthComponent.h" />
+    <ClInclude Include="src\Components\Interface\IObject.h" />
+    <ClInclude Include="src\Components\Health\ORegen.h" />
+    <ClInclude Include="src\Components\Health\ONumericalAttribute.h" />
     <ClInclude Include="src\Logger\Logger.h" />
     <ClInclude Include="src\Pointers\SharedPointer.h" />
     <ClInclude Include="src\Pointers\UniquePointer.h" />
