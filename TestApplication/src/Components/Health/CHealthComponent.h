@@ -3,7 +3,7 @@
 
 #include "../Interface/IComponent.h"
 
-#include "ONumericalAttribute.h"
+#include "ONumericalAttributeF.h"
 #include "ORegen.h"
 
 namespace t3d
@@ -24,15 +24,19 @@ namespace t3d
 
 		void Update(const float32& DeltaTime) override;
 
-		void Heal(float32 HpPerSecond, float32 Duration = 0.5f);
+		void Heal(float32 HpPerSecond, float32 Duration = 1.0f);
 
-		void Damage(float32 HpPerSecond, float32 Duration = 0.5f);
+		void Damage(float32 HpPerSecond, float32 Duration = 1.0f);
+
+	// Accessors:
+
+		inline ONumericalAttributeF& GetHp() { return Health; }
 
 	private:
 
 	// Variables:
 
-		ONumericalAttribute Health;
+		ONumericalAttributeF Health;
 
 		std::vector<ORegen*> RegenStacks;
 	};

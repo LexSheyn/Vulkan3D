@@ -11,7 +11,6 @@ namespace t3d
 
 	// Constructors and Destructor:
 
-		 ORegen();
 		 ORegen(float32 PointsPerSecond, float32 Duration);
 
 		~ORegen();

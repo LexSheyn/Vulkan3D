@@ -101,10 +101,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Application\Application.cpp" />
-    <ClCompile Include="src\Components\Health\FHealthSystem.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
-    </ClCompile>
     <ClCompile Include="src\Components\Interface\IComponent.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
@@ -113,7 +109,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="src\Components\Health\ONumericalAttribute.cpp">
+    <ClCompile Include="src\Components\Health\ONumericalAttributeF.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../PrecompiledHeaders/stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -146,12 +142,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Application\Application.h" />
-    <ClInclude Include="src\Components\Health\FHealthSystem.h" />
     <ClInclude Include="src\Components\Interface\IComponent.h" />
     <ClInclude Include="src\Components\Health\CHealthComponent.h" />
     <ClInclude Include="src\Components\Interface\IObject.h" />
     <ClInclude Include="src\Components\Health\ORegen.h" />
-    <ClInclude Include="src\Components\Health\ONumericalAttribute.h" />
+    <ClInclude Include="src\Components\Health\ONumericalAttributeF.h" />
     <ClInclude Include="src\Logger\Logger.h" />
     <ClInclude Include="src\Pointers\SharedPointer.h" />
     <ClInclude Include="src\Pointers\UniquePointer.h" />
@@ -160,6 +155,7 @@
     <ClInclude Include="src\RenderSystem\FVertex.h" />
     <ClInclude Include="src\RenderSystem\RenderSystem.h" />
     <ClInclude Include="src\ShaderManager\ShaderManager.h" />
+    <ClInclude Include="src\STB_Image\stb_image.h" />
     <ClInclude Include="src\Timer\ScopeTimer32.h" />
     <ClInclude Include="src\Timer\Timer32.h" />
     <ClInclude Include="src\Timer\TimeStep32.h" />

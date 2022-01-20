@@ -44,6 +44,10 @@ typedef double             float64;
 
 #pragma warning( pop ) // Vulkan SDK - End
 
+// STB Image:
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "../STB_Image/stb_image.h"
+
 // C++ core:
 #include <iostream>
 #include <fstream>

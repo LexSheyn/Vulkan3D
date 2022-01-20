@@ -136,6 +136,14 @@ private:
 
 	void CreateCommandPool();
 
+	void CreateTextureImage();
+
+	void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+
+	void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+
+	void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
 	void CreateVertexBuffer();
 
 	void CreateIndexBuffer();
@@ -143,6 +151,10 @@ private:
 	void CreateUniformBuffers();
 
 	void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+
+	VkCommandBuffer BeginSingleTimeCommands();
+
+	void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
 	void CopyBuffer(VkBuffer sourceBuffer, VkBuffer destinationBuffer, VkDeviceSize size);
 
@@ -268,6 +280,9 @@ private:
 	VkPipeline GraphicsPipeline;
 
 	VkCommandPool CommandPool;
+
+	VkImage TextureImage;
+	VkDeviceMemory TextureImageMemory;
 
 	VkBuffer VertexBuffer;
 	VkDeviceMemory VertexBufferMemory;

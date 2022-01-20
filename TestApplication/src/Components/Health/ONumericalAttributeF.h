@@ -1,20 +1,19 @@
-#ifndef FNUMERICALATTRIBUTE_H
-#define FNUMERICALATTRIBUTE_H
+#ifndef FNUMERICALATTRIBUTEF_H
+#define FNUMERICALATTRIBUTEF_H
 
 #include "../Interface/IObject.h"
 
 namespace t3d
 {
-	class ONumericalAttribute : public IObject
+	class ONumericalAttributeF : public IObject
 	{
 	public:
 
 	// Constructors and Destructor:
 
-		ONumericalAttribute();
-		ONumericalAttribute(float32 ValueMax, float32 Value);
+		         ONumericalAttributeF(float32 ValueMax, float32 Value);
 
-		virtual ~ONumericalAttribute();
+		virtual ~ONumericalAttributeF();
 
 	// Functions:
 
@@ -37,4 +36,4 @@ namespace t3d
 	};	
 }
 
-#endif // FNUMERICALATTRIBUTE_H
+#endif // FNUMERICALATTRIBUTEF_H
